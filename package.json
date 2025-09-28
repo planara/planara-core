@@ -5,6 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "dev": "vite",
+    "build": "vite build",
     "lint": "eslint src --ext .ts,.js",
     "lint:fix": "eslint src --ext .ts,.js --fix",
     "format": "prettier --write 'src/**/*.{ts,js,json,css}'"
