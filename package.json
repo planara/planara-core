@@ -1,21 +1,32 @@
 {
-  "name": "planara-core",
+  "name": "@planara/core",
   "version": "1.0.0",
   "type": "module",
-  "main": "index.ts",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint src --ext .ts,.js",
     "lint:fix": "eslint src --ext .ts,.js --fix",
-    "format": "prettier --write 'src/**/*.{ts,js,json,css}'"
+    "format": "prettier --write 'src/**/*.{ts,js,json}'"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "keywords": [
+    "planara",
+    "3d",
+    "ogl",
+    "renderer"
+  ],
+  "author": "a1unade",
+  "license": "MIT",
+  "description": "Core rendering library for Planara",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@types/node": "^24.6.0",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
     "eslint": "^9.36.0",
@@ -23,10 +34,15 @@
     "eslint-plugin-prettier": "^5.5.4",
     "prettier": "^3.6.2",
     "typescript": "^5.9.2",
-    "vite": "^7.1.7"
+    "vite": "^7.1.7",
+    "vite-plugin-dts": "^4.5.4",
+    "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
     "ogl": "^1.0.11"
   },
-  "packageManager": "yarn@4.5.3+sha512.3003a14012e2987072d244c720506549c1aab73ee728208f1b2580a9fd67b92d61ba6b08fe93f6dce68fd771e3af1e59a0afa28dd242dd0940d73b95fedd4e90"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/planara/planara-core.git"
+  }
 }
