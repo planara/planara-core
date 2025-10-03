@@ -29,6 +29,7 @@ export class PreviewRenderer extends Renderer {
    * Обновление состояния рендерера.
    */
   protected update() {
-    this.orbit.update();
+    // Защита от вызова до инициализации
+    this.orbit?.update();
   }
 }
