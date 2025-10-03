@@ -1,6 +1,6 @@
 {
   "name": "@planara/core",
-  "version": "1.1.2",
+  "version": "1.2.2",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -43,6 +43,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
+    "@planara/types": "^1.0.3",
     "ogl": "^1.0.11"
   },
   "repository": {

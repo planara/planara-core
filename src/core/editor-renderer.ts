@@ -2,11 +2,18 @@ import { Renderer } from './renderer';
 import { GridHelper, Orbit, AxesHelper } from 'ogl';
 
 /**
- * Рендерер для редактора (оси координат, сетка, orbit)
+ * Рендерер для редактора.
+ * Добавляет сетку, оси координат и поддержку Orbit для управления камерой.
+ * Наследуется от базового Renderer.
  */
 export class EditorRenderer extends Renderer {
+  /** Orbit-контроллер для управления камерой */
   private orbit!: Orbit;
 
+  /**
+   * Инициализация сцены редактора.
+   * Создает сетку, оси координат и orbit-контроллер.
+   */
   protected init() {
     // сетка
     const grid = new GridHelper(this.gl.gl, { size: 10, divisions: 10 });
@@ -21,6 +28,9 @@ export class EditorRenderer extends Renderer {
     this.orbit = new Orbit(this.camera);
   }
 
+  /**
+   * Обновление состояния рендерера.
+   */
   protected update() {
     this.orbit.update();
   }
