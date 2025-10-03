@@ -1,11 +1,10 @@
-import { Renderer as OGLRenderer, Camera, Transform, GridHelper, Orbit, AxesHelper } from 'ogl';
+import { Renderer as OGLRenderer, Camera, Transform } from 'ogl';
 
-export class Renderer {
+export abstract class Renderer {
   public gl: OGLRenderer;
   public scene: Transform;
   public camera: Camera;
-  public orbit: Orbit;
-  private canvas: HTMLCanvasElement;
+  protected canvas: HTMLCanvasElement;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -15,26 +14,17 @@ export class Renderer {
 
     this.scene = new Transform();
 
-    // Камера
     this.camera = new Camera(this.gl.gl, { fov: 45 });
     this.camera.position.set(1, 1, 7);
     this.camera.lookAt([0, 0, 0]);
 
-    // Сетка
-    const grid = new GridHelper(this.gl.gl, { size: 10, divisions: 10 });
-    grid.position.y = -0.001;
-    grid.setParent(this.scene);
-
-    // Управление
-    this.orbit = new Orbit(this.camera);
-
-    // Оси X, Y, Z
-    const axes = new AxesHelper(this.gl.gl, { size: 6, symmetric: true });
-    axes.setParent(this.scene);
+    this.init();
   }
 
+  protected abstract init(): void;
+
   resize() {
-    this.gl.setSize(window.innerWidth, window.innerHeight);
+    this.gl.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
     this.camera.perspective({ aspect: this.canvas.width / this.canvas.height });
   }
 
@@ -43,8 +33,10 @@ export class Renderer {
   }
 
   loop() {
-    this.orbit.update();
+    this.update();
     this.render();
     requestAnimationFrame(this.loop.bind(this));
   }
+
+  protected update(): void {}
 }

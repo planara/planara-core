@@ -1,8 +1,9 @@
 {
   "name": "@planara/core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "type": "module",
   "main": "dist/index.cjs.js",
