@@ -16,7 +16,7 @@ export default defineConfig({
         lib: {
             entry: resolve(__dirname, 'src/index.ts'),
             name: 'PlanaraCore',
-            fileName: 'index',
+            fileName: (format) => `index.${format}.js`,
             formats: ['es', 'cjs', 'umd']
         },
         rollupOptions: {

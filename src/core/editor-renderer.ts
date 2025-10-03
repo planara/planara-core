@@ -1,6 +1,9 @@
 import { Renderer } from './renderer';
 import { GridHelper, Orbit, AxesHelper } from 'ogl';
 
+/**
+ * Рендерер для редактора (оси координат, сетка, orbit)
+ */
 export class EditorRenderer extends Renderer {
   private orbit!: Orbit;
 
