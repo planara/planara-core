@@ -12,8 +12,11 @@ export class PreviewRenderer extends Renderer {
 
   /**
    * Инициализация сцены предпросмотра.
+   * @param canvas - HTMLCanvasElement для рендеринга
    */
-  protected init() {
+  constructor(canvas: HTMLCanvasElement) {
+    super(canvas);
+
     // Ограничение вращения камеры по горизонтали
     this.orbit = new Orbit(this.camera, {
       target: new Vec3(0, 0, 0),

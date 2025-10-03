@@ -13,8 +13,11 @@ export class EditorRenderer extends Renderer {
   /**
    * Инициализация сцены редактора.
    * Создает сетку, оси координат и orbit-контроллер.
+   * @param canvas - HTMLCanvasElement для рендеринга
    */
-  protected init() {
+  constructor(canvas: HTMLCanvasElement) {
+    super(canvas);
+
     // сетка
     const grid = new GridHelper(this.gl.gl, { size: 10, divisions: 10 });
     grid.position.y = -0.001;

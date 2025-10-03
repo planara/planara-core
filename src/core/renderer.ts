@@ -32,14 +32,7 @@ export abstract class Renderer {
     this.camera = new Camera(this.gl.gl, { fov: 45 });
     this.camera.position.set(1, 1, 7);
     this.camera.lookAt([0, 0, 0]);
-
-    this.init();
   }
-
-  /**
-   * Метод для инициализации рендерера, добавления объектов в сцену.
-   */
-  protected abstract init(): void;
 
   /**
    * Обновляет размер рендерера и камеры при изменении размеров canvas.
