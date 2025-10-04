@@ -36,28 +36,3 @@ jobs:
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      - name: Create Release
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const { data: pullRequests } = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'closed',
-            });
-
-            const mergedPRs = pullRequests
-              .filter(pr => pr.merged_at)
-              .map(pr => `- ${pr.body || 'No description'} (#${pr.number})`)
-              .join("\n");
-
-            await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: `v${process.env.VERSION}`,
-              name: `v${process.env.VERSION}`,
-              body: mergedPRs || 'Automatic release from CI',
-              draft: false,
-              prerelease: false,
-            });
