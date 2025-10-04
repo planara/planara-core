@@ -54,13 +54,9 @@ export abstract class Renderer {
    * Обновляет размер рендерера и камеры при изменении размеров canvas.
    */
   public resize() {
-    // Установка размеров для canvas
-    this.canvas.width = this.canvas.clientWidth;
-    this.canvas.height = this.canvas.clientHeight;
-
     // Синхронизация размеров canvas с рендерером и камерой
-    this.gl.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-    this.camera.perspective({ aspect: this.canvas.clientWidth / this.canvas.clientHeight });
+    this.gl.setSize(this.canvas.width, this.canvas.height);
+    this.camera.perspective({ aspect: this.canvas.width / this.canvas.height });
   }
 
   /**
