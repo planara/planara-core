@@ -6,13 +6,13 @@ import { Renderer as OGLRenderer, Camera, Transform } from 'ogl';
  */
 export abstract class Renderer {
   /** Экземпляр рендерера OGL */
-  public gl: OGLRenderer;
+  protected gl: OGLRenderer;
 
   /** Корневой объект сцены */
-  public scene: Transform;
+  protected scene: Transform;
 
   /** Камера для сцены */
-  public camera: Camera;
+  protected camera: Camera;
 
   /** HTML-элемент canvas, на котором рендерится сцена */
   protected canvas: HTMLCanvasElement;
@@ -21,7 +21,7 @@ export abstract class Renderer {
    * Конструктор рендерера
    * @param canvas - HTMLCanvasElement для рендеринга
    */
-  constructor(canvas: HTMLCanvasElement) {
+  protected constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.gl = new OGLRenderer({ canvas });
     this.gl.setSize(canvas.clientWidth, canvas.clientHeight);
@@ -37,29 +37,34 @@ export abstract class Renderer {
   /**
    * Обновляет размер рендерера и камеры при изменении размеров canvas.
    */
-  resize() {
+  public resize() {
+    // Установка размеров для canvas
+    this.canvas.width = this.canvas.clientWidth;
+    this.canvas.height = this.canvas.clientHeight;
+
+    // Синхронизация размеров canvas с рендерером и камерой
     this.gl.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-    this.camera.perspective({ aspect: this.canvas.width / this.canvas.height });
+    this.camera.perspective({ aspect: this.canvas.clientWidth / this.canvas.clientHeight });
   }
 
   /**
    * Выполняет рендеринг сцены с текущей камерой.
    */
-  render() {
+  protected render() {
     this.gl.render({ scene: this.scene, camera: this.camera });
-  }
-
-  /**
-   * Запускает основной цикл рендеринга.
-   */
-  loop() {
-    this.update();
-    this.render();
-    requestAnimationFrame(this.loop.bind(this));
   }
 
   /**
    * Метод для обновления логики рендерера.
    */
   protected update(): void {}
+
+  /**
+   * Запускает основной цикл рендеринга.
+   */
+  public loop() {
+    this.update();
+    this.render();
+    requestAnimationFrame(this.loop.bind(this));
+  }
 }

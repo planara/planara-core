@@ -15,7 +15,7 @@ export class EditorRenderer extends Renderer {
    * Создает сетку, оси координат и orbit-контроллер.
    * @param canvas - HTMLCanvasElement для рендеринга
    */
-  constructor(canvas: HTMLCanvasElement) {
+  public constructor(canvas: HTMLCanvasElement) {
     super(canvas);
 
     // сетка
@@ -28,7 +28,7 @@ export class EditorRenderer extends Renderer {
     axes.setParent(this.scene);
 
     // orbit
-    this.orbit = new Orbit(this.camera);
+    this.orbit = new Orbit(this.camera, { element: this.canvas });
   }
 
   /**
