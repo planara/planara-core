@@ -19,6 +19,7 @@ export class PreviewRenderer extends Renderer {
 
     // Ограничение вращения камеры по горизонтали
     this.orbit = new Orbit(this.camera, {
+      element: this.canvas,
       target: new Vec3(0, 0, 0),
       minPolarAngle: Math.PI / 2,
       maxPolarAngle: Math.PI / 2,

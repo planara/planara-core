@@ -13,7 +13,7 @@ export class ObjLoader {
    * Загружает OBJ-модель в Figure
    * @param objContent Строка содержимого .obj файла
    */
-  parse(objContent: string): Figure {
+  public parse(objContent: string): Figure {
     const lines = objContent.split('\n');
 
     for (const line of lines) {
