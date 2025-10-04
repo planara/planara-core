@@ -1,4 +1,5 @@
 ![build](https://github.com/planara/planara-core/actions/workflows/build.yml/badge.svg)
+![deploy](https://github.com/planara/planara-core/actions/workflows/deploy.yml/badge.svg)
 
 ## Planara Core
 
