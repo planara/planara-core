@@ -1,10 +1,16 @@
 import { Figure, type FigureData, FigureType } from '@planara/types';
 
 export class ObjLoader {
+  /** Позиции вершин */
   private positions: number[] = [];
+
+  /** Нормали вершин */
   private normals: number[] = [];
+
+  /** UV-координаты (опционально) */
   private uvs: number[] = [];
 
+  // Временные поля для парсинга файла
   private tmpPositions: number[][] = [];
   private tmpNormals: number[][] = [];
   private tmpUVs: number[][] = [];
@@ -13,7 +19,7 @@ export class ObjLoader {
    * Загружает OBJ-модель в Figure
    * @param objContent Строка содержимого .obj файла
    */
-  public parse(objContent: string): Figure {
+  public load(objContent: string): Figure {
     const lines = objContent.split('\n');
 
     for (const line of lines) {
