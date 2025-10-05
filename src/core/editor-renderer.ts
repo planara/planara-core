@@ -15,7 +15,10 @@ export class EditorRenderer extends Renderer {
   private raycast!: Raycast;
 
   /** Курсор мыши для остлеживания наведения на 3D-модель */
-  private readonly mouse!: Vec2;
+  private mouse!: Vec2;
+
+  /** Были ли зарегистрированы обработчики событий для мыши */
+  private isEventListenersAdded!: boolean;
 
   /**
    * Инициализация сцены редактора.
@@ -43,8 +46,8 @@ export class EditorRenderer extends Renderer {
     // курсор мыши
     this.mouse = new Vec2();
 
-    // регистрация обработчиков мыши
-    this.initMouseListeners();
+    // Изначально обработчики мыши не зарегистрированы
+    this.isEventListenersAdded = false;
   }
 
   /**
@@ -78,6 +81,12 @@ export class EditorRenderer extends Renderer {
     mesh.onBeforeRender(({ mesh }) => {
       this.updateHitUniform(mesh);
     });
+
+    // регистрация обработчиков мыши
+    if (this.isEventListenersAdded) {
+      this.initMouseListeners();
+      this.isEventListenersAdded = true;
+    }
 
     return mesh;
   }
@@ -117,4 +126,19 @@ export class EditorRenderer extends Renderer {
     // отмечаем их как hit
     hits.forEach((mesh) => ((mesh as any).isHit = true));
   };
+
+  /** Деструктор */
+  public destroy() {
+    // Очистка обработчиков событий, если были добавлены
+    if (this.isEventListenersAdded) {
+      window.removeEventListener('mousemove', this.handleMouseMove, false);
+      this.isEventListenersAdded = false;
+    }
+
+    this.orbit = null!;
+    this.raycast = null!;
+    this.mouse = null!;
+
+    super.destroy();
+  }
 }
