@@ -1,4 +1,4 @@
-import { type OGLRenderingContext, Program, Texture } from 'ogl';
+import { type OGLRenderingContext, Program } from 'ogl';
 
 /**
  * Создает универсальный Program для рендерера.
@@ -35,20 +35,18 @@ export function createProgram(gl: OGLRenderingContext): Program {
 
     void main() {
       vec3 normal = normalize(vNormal);
-        float lighting = dot(normal, normalize(vec3(-0.3, 0.8, 0.6)));
-        vec3 color = mix(vec3(0.2, 0.8, 1.0), vec3(1.0, 0.2, 0.8), uHit);
-        gl_FragColor.rgb = color + lighting * 0.1;
-        gl_FragColor.a = 1.0;
+      float lighting = dot(normal, normalize(vec3(-0.3, 0.8, 0.6)));
+      vec3 color = mix(vec3(0.2, 0.8, 1.0), vec3(1.0, 0.2, 0.8), uHit);
+      gl_FragColor.rgb = color + lighting * 0.1;
+      gl_FragColor.a = 1.0;
     }
   `;
-
-  const defaultTexture = new Texture(gl);
 
   return new Program(gl, {
     vertex,
     fragment,
+    cullFace: false,
     uniforms: {
-      tMap: { value: defaultTexture },
       uHit: { value: 0 },
     },
   });
