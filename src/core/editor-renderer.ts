@@ -1,5 +1,5 @@
 import { Renderer } from './renderer';
-import { GridHelper, Orbit, AxesHelper, Raycast, Vec2, type Mesh } from 'ogl';
+import { GridHelper, Orbit, AxesHelper, Vec2, type Mesh, Raycast } from 'ogl';
 import type { Figure } from '@planara/types';
 
 /**
@@ -85,7 +85,6 @@ export class EditorRenderer extends Renderer {
     // регистрация обработчиков мыши
     if (!this.isEventListenersAdded) {
       this.initMouseListeners();
-      this.isEventListenersAdded = true;
     }
 
     return mesh;
@@ -102,9 +101,8 @@ export class EditorRenderer extends Renderer {
    * Инициализация обработчиков мыши для raycast
    */
   private initMouseListeners() {
-    window.addEventListener('load', () => {
-      document.addEventListener('mousemove', this.handleMouseMove, false);
-    });
+    document.addEventListener('mousemove', this.handleMouseMove, false);
+    this.isEventListenersAdded = true;
   }
 
   /**

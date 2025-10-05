@@ -40,7 +40,7 @@ export abstract class Renderer {
     this.gl.setSize(canvas.clientWidth, canvas.clientHeight);
 
     // Настройка фона
-    this.gl.gl.clearColor(1, 1, 1, 1);
+    this.gl.gl.clearColor(0.1, 0.1, 0.1, 1.0);
 
     // Добавление сцены
     this.scene = new Transform();
