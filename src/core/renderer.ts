@@ -52,6 +52,9 @@ export abstract class Renderer {
 
     // Добавление Program для настройки рендеринга
     this.program = createProgram(this.gl.gl);
+
+    // Инициализация массива фигур на сцене
+    this.meshes = [];
   }
 
   /**
