@@ -19,7 +19,11 @@ export abstract class Renderer {
   /** HTML-элемент canvas, на котором рендерится сцена */
   protected canvas: HTMLCanvasElement;
 
+  /** Program для настройки рендеринга моделей */
   protected program: Program;
+
+  /** Массив моделей на сцене */
+  protected meshes!: Mesh[];
 
   /**
    * Конструктор рендерера
@@ -100,6 +104,9 @@ export abstract class Renderer {
 
     // Добавление модели на сцену
     mesh.setParent(this.scene);
+
+    // Добавление фигуры в массив моделей на сцене
+    this.meshes.push(mesh);
     return mesh;
   }
 }
