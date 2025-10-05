@@ -32,6 +32,8 @@ export function createProgram(gl: OGLRenderingContext): Program {
   const fragment = /* glsl */ `
     precision highp float;
 
+    uniform float uHit;
+
     uniform sampler2D tMap;
     varying vec3 vNormal;
     varying vec2 vUv;
@@ -50,6 +52,9 @@ export function createProgram(gl: OGLRenderingContext): Program {
   return new Program(gl, {
     vertex,
     fragment,
-    uniforms: { tMap: { value: defaultTexture } },
+    uniforms: {
+      tMap: { value: defaultTexture },
+      uHit: { value: 0 },
+    },
   });
 }
