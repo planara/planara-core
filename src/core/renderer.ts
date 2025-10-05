@@ -109,4 +109,21 @@ export abstract class Renderer {
     this.meshes.push(mesh);
     return mesh;
   }
+
+  /** Деструктор */
+  public destroy() {
+    if (this.meshes) {
+      this.meshes.length = 0;
+      this.meshes = [];
+    }
+
+    this.scene = null!;
+    this.camera = null!;
+
+    this.program = null!;
+
+    this.gl = null!;
+
+    this.canvas = null!;
+  }
 }
