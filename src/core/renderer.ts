@@ -34,7 +34,7 @@ export abstract class Renderer {
     this.canvas = canvas;
 
     // Рендерер ogl
-    this.gl = new OGLRenderer({ canvas });
+    this.gl = new OGLRenderer({ canvas, dpr: 2 });
 
     // Настройка рендерера под размеры canvas
     this.gl.setSize(canvas.clientWidth, canvas.clientHeight);
