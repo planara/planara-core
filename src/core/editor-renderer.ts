@@ -95,34 +95,21 @@ export class EditorRenderer extends Renderer {
   private initMouseListeners() {
     window.addEventListener('load', () => {
       document.addEventListener('mousemove', this.handleMouseMove, false);
-      document.addEventListener('touchmove', this.handleMouseMove, false);
     });
   }
 
   /**
    * Обработчик движения мыши
    */
-  private handleMouseMove = (e: MouseEvent | TouchEvent) => {
-    let x: number, y: number;
-    if (e instanceof MouseEvent) {
-      x = e.clientX;
-      y = e.clientY;
-    } else {
-      // Проверка на пустоту у тач-устройств
-      if (e.touches[0] === undefined) return;
-
-      x = e.touches[0].clientX;
-      y = e.touches[0].clientY;
-    }
-
+  private handleMouseMove = (e: MouseEvent) => {
     // нормализованные координаты [-1, 1]
-    this.mouse.set(2.0 * (x / this.canvas.width) - 1.0, 2.0 * (1.0 - y / this.canvas.height) - 1.0);
+    this.mouse.set(2.0 * (e.x / this.gl.width) - 1.0, 2.0 * (1.0 - e.y / this.gl.height) - 1.0);
 
     // обновление луча
     this.raycast.castMouse(this.camera, this.mouse);
 
     // сброс isHit для всех фигур
-    (this.meshes as (Mesh & { isHit?: boolean })[]).forEach((mesh) => (mesh.isHit = false));
+    this.meshes.forEach((mesh) => ((mesh as any).isHit = false));
 
     // получение фигур, на которые навелись
     const hits = this.raycast.intersectBounds(this.meshes);
