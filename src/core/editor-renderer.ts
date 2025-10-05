@@ -83,7 +83,7 @@ export class EditorRenderer extends Renderer {
     });
 
     // регистрация обработчиков мыши
-    if (this.isEventListenersAdded) {
+    if (!this.isEventListenersAdded) {
       this.initMouseListeners();
       this.isEventListenersAdded = true;
     }
