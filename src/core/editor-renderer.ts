@@ -1,6 +1,7 @@
 import { Renderer } from './renderer';
-import { GridHelper, Orbit, AxesHelper, Vec2, type Mesh, Raycast } from 'ogl';
+import { GridHelper, AxesHelper, Vec2, type Mesh, Raycast } from 'ogl';
 import type { Figure } from '@planara/types';
+import { OrbitWithState } from '../extensions/orbit-extension';
 
 /**
  * Рендерер для редактора.
@@ -9,7 +10,7 @@ import type { Figure } from '@planara/types';
  */
 export class EditorRenderer extends Renderer {
   /** Orbit-контроллер для управления камерой */
-  private orbit!: Orbit;
+  private orbit!: OrbitWithState;
 
   /** Raycast для подсветки моделей при наведении */
   private raycast!: Raycast;
@@ -38,7 +39,7 @@ export class EditorRenderer extends Renderer {
     axes.setParent(this.scene);
 
     // orbit
-    this.orbit = new Orbit(this.camera, { element: this.canvas });
+    this.orbit = new OrbitWithState(this.camera, { element: this.canvas });
 
     // raycast
     this.raycast = new Raycast();
@@ -109,6 +110,9 @@ export class EditorRenderer extends Renderer {
    * Обработчик движения мыши
    */
   private handleMouseMove = (e: MouseEvent) => {
+    // Если используется камера, то raycast выключен
+    if (this.orbit.isInteracting) return;
+
     // нормализованные координаты [-1, 1]
     this.mouse.set(2.0 * (e.x / this.gl.width) - 1.0, 2.0 * (1.0 - e.y / this.gl.height) - 1.0);
 
