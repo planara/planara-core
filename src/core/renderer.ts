@@ -1,10 +1,14 @@
+// Core
 import { Renderer as OGLRenderer, Camera, Transform, Mesh, Geometry, type Program } from 'ogl';
-import { createProgram } from '../utils/program-settings';
+// Utils
+import { _createProgram } from '../utils/program-settings';
+// Types
 import type { Figure } from '@planara/types';
 
 /**
  * Абстрактный базовый класс рендерера для работы с WebGL через OGL.
  * Отвечает за инициализацию сцены, камеры и цикла рендеринга.
+ * @public
  */
 export abstract class Renderer {
   /** Экземпляр рендерера OGL */
@@ -51,7 +55,7 @@ export abstract class Renderer {
     this.camera.lookAt([0, 0, 0]);
 
     // Добавление Program для настройки рендеринга
-    this.program = createProgram(this.gl.gl);
+    this.program = _createProgram(this.gl.gl);
 
     // Инициализация массива фигур на сцене
     this.meshes = [];
@@ -89,7 +93,7 @@ export abstract class Renderer {
 
   /**
    * Публичный метод для добавления фигуры.
-   * @param figure Данные фигуры: position, normal, uv
+   * @param figure - Данные фигуры: position, normal, uv
    */
   public addFigure(figure: Figure) {
     // Загрузка геометрии модели

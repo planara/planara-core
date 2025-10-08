@@ -29,6 +29,10 @@
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
 
+    // IOC Container
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+
     // Recommended Options
     "strict": true,
     "verbatimModuleSyntax": true,

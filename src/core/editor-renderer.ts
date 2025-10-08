@@ -1,13 +1,20 @@
+// Core
 import { Renderer } from './renderer';
-import { GridHelper, AxesHelper, Vec2, type Mesh, Raycast } from 'ogl';
+import { GridHelper, AxesHelper, Vec2, type Mesh, Raycast, type OGLRenderingContext } from 'ogl';
+// Types
 import type { Figure } from '@planara/types';
+// Extensions
 import { OrbitWithState } from '../extensions/orbit-extension';
+// IOC
+import { injectable } from 'tsyringe';
 
 /**
  * Рендерер для редактора.
  * Добавляет сетку, оси координат и поддержку Orbit для управления камерой.
  * Наследуется от базового Renderer.
+ * @public
  */
+@injectable()
 export class EditorRenderer extends Renderer {
   /** Orbit-контроллер для управления камерой */
   private orbit!: OrbitWithState;
@@ -52,6 +59,46 @@ export class EditorRenderer extends Renderer {
   }
 
   /**
+   * Добавляет фигуру в сцену и сохраняет его во внутреннем массиве.
+   *
+   * @param mesh - Фигура для добавления в сцену.
+   * @internal
+   */
+  public addMesh(mesh: Mesh): void {
+    this.scene.addChild(mesh);
+  }
+
+  /**
+   * Возвращает WebGL контекст рендерера.
+   *
+   * @returns Контекст WebGL (OGLRenderingContext) текущей сцены.
+   * @internal
+   */
+  public getContext(): OGLRenderingContext {
+    return this.gl.gl;
+  }
+
+  /**
+   * Убирает фигуру со сцены
+   *
+   * @param mesh - Фигура для удаления со сцены.
+   * @internal
+   */
+  public removeMesh(mesh: Mesh): void {
+    this.scene.removeChild(mesh);
+  }
+
+  /**
+   * Возвращает список всех фигур, находящихся в сцене.
+   *
+   * @returns Массив текущих фигур.
+   * @internal
+   */
+  public getMeshes(): Mesh[] {
+    return this.meshes;
+  }
+
+  /**
    * Обновление состояния рендерера.
    */
   protected update() {
@@ -62,7 +109,7 @@ export class EditorRenderer extends Renderer {
   /**
    * Метод для добавления фигуры.
    * Настройка raycast.
-   * @param figure Данные фигуры: position, normal, uv
+   * @param figure - Данные фигуры: position, normal, uv
    */
   public override addFigure(figure: Figure) {
     const mesh = super.addFigure(figure);

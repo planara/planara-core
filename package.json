@@ -1,6 +1,6 @@
 {
   "name": "@planara/core",
-  "version": "1.4.9",
+  "version": "1.5.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -9,6 +9,14 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs.js",
+      "types": "./dist/index.public.d.ts",
+      "import": "./dist/index.es.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
     "dist"
   ],
@@ -17,7 +25,8 @@
     "build": "vite build",
     "lint": "eslint src --ext .ts,.js",
     "lint:fix": "eslint src --ext .ts,.js --fix",
-    "format": "prettier --write 'src/**/*.{ts,js,json}'"
+    "format": "prettier --write 'src/**/*.{ts,js,json}'",
+    "api:extract": "api-extractor run --local"
   },
   "keywords": [
     "planara",
@@ -30,6 +39,7 @@
   "description": "Core rendering library for Planara",
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
+    "@microsoft/api-extractor": "^7.53.1",
     "@types/node": "^24.6.0",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
@@ -43,8 +53,10 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
-    "@planara/types": "^1.0.3",
-    "ogl": "^1.0.11"
+    "@planara/types": "^1.2.0",
+    "ogl": "^1.0.11",
+    "reflect-metadata": "^0.2.2",
+    "tsyringe": "^4.10.0"
   },
   "repository": {
     "type": "git",

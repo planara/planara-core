@@ -1,6 +1,10 @@
+// Core
 import { Orbit } from 'ogl';
 
-/** Расширение для Orbit с отслеживанием управления камерой*/
+/**
+ * Расширение для Orbit с отслеживанием управления камерой
+ * @internal
+ */
 export class OrbitWithState extends Orbit {
   /** Используется ли Orbit-controls */
   public isInteracting: boolean = false;

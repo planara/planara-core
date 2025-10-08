@@ -27,10 +27,8 @@ jobs:
       - name: Build library
         run: npm run build
 
-      - name: Get package version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_ENV
+      - name: Run API Extractor
+        run: npm run api:extract
 
       - name: Publish to npm
         run: npm publish --access public
