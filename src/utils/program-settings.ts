@@ -6,10 +6,11 @@ import { type OGLRenderingContext, Program } from 'ogl';
  * Включает базовый vertex и fragment шейдеры, добавляет uniform `tMap` с дефолтной текстурой.
  * Этот Program можно использовать для всех фигур в сцене, а также для сетки и осей.
  *
- * @param {OGLRenderingContext} gl - WebGL контекст.
- * @returns {Program} Экземпляр Program с базовыми шейдерами и uniform.
+ * @param gl - WebGL контекст.
+ * @returns Экземпляр Program с базовыми шейдерами и uniform.
+ * @internal
  */
-export function createProgram(gl: OGLRenderingContext): Program {
+export function _createProgram(gl: OGLRenderingContext): Program {
   const vertex = /* glsl */ `
     attribute vec3 position;
     attribute vec3 normal;

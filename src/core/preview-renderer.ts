@@ -1,3 +1,4 @@
+// Core
 import { Renderer } from './renderer';
 import { Orbit, Vec3 } from 'ogl';
 
@@ -5,6 +6,7 @@ import { Orbit, Vec3 } from 'ogl';
  * Рендерер для предпросмотра 3D-модели.
  * Настраивает сцену, камеру и орбитальную навигацию (по горизонтали).
  * Наследуется от базового Renderer.
+ * @alpha
  */
 export class PreviewRenderer extends Renderer {
   /** Orbit-контроллер для управления камерой */

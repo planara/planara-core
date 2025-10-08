@@ -1,5 +1,7 @@
+// Types
 import { Figure, type FigureData, FigureType } from '@planara/types';
 
+/** @public */
 export class ObjLoader {
   /** Позиции вершин */
   private positions: number[] = [];
@@ -17,7 +19,7 @@ export class ObjLoader {
 
   /**
    * Загружает OBJ-модель в Figure
-   * @param objContent Строка содержимого .obj файла
+   * @param objContent - Строка содержимого .obj файла
    */
   public load(objContent: string): Figure {
     const lines = objContent.split('\n');

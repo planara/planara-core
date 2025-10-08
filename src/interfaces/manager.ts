@@ -1,0 +1,22 @@
+/**
+ * Общий интерфейс для всех менеджеров в хабе.
+ * Каждый менеджер отвечает за одну фичу.
+ * @public
+ */
+export interface IManager {
+  /**
+   * Выполняет основное действие менеджера.
+   */
+  manage(...args: unknown[]): void;
+
+  /**
+   * Освобождает ресурсы менеджера.
+   */
+  destroy(): void;
+}
+
+/**
+ * Маркерный интерфейс для менеджеров отображения.
+ * @public
+ */
+export interface IDisplayManager extends IManager {}
