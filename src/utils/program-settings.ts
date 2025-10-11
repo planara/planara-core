@@ -31,15 +31,32 @@ export function _createProgram(gl: OGLRenderingContext): Program {
     precision highp float;
 
     uniform float uHit;
+    uniform float uSelected;
 
     varying vec3 vNormal;
 
     void main() {
       vec3 normal = normalize(vNormal);
       float lighting = dot(normal, normalize(vec3(-0.3, 0.8, 0.6)));
-      vec3 color = mix(vec3(0.2, 0.8, 1.0), vec3(1.0, 0.2, 0.8), uHit);
-      gl_FragColor.rgb = color + lighting * 0.1;
-      gl_FragColor.a = 1.0;
+
+      // Базовый цвет меша
+      vec3 baseColor = vec3(0.2, 0.8, 1.0);
+
+      // Цвет при наведении (hover)
+      vec3 hoverColor = vec3(1.0, 1.0, 0.1);
+
+      // Цвет при клике (selected)
+      vec3 selectedColor = vec3(1.0, 0.3, 0.3);
+
+      // Применяем логику подсветки:
+      // приоритет: выделение > hover > обычный цвет
+      vec3 color = mix(baseColor, hoverColor, uHit);
+      color = mix(color, selectedColor, uSelected);
+
+      // Немного света для объема
+      color += lighting * 0.1;
+
+      gl_FragColor = vec4(color, 1.0);
     }
   `;
 
@@ -49,6 +66,7 @@ export function _createProgram(gl: OGLRenderingContext): Program {
     cullFace: false,
     uniforms: {
       uHit: { value: 0 },
+      uSelected: { value: 0 }
     },
   });
 }

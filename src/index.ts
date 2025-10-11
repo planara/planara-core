@@ -10,4 +10,14 @@ export * from './loaders/obj-loader';
 export * from './hub/app-hub';
 export * from './hub/editor-hub';
 // Interfaces
-export * from './interfaces/manager';
+export * from './interfaces/manager/manager';
+export * from './interfaces/manager/display-manager';
+export * from './interfaces/manager/select-manager';
+// Event Bus
+export * from './events/event-bus';
+// Extensions
+export * from './extensions/mesh-extension';
+// Types
+export * from './events/editor-events';
+export * from './events/event-topics';
+export * from './types/camera/camera-position';

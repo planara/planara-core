@@ -3,7 +3,7 @@ import { type Mesh, NormalProgram, type OGLRenderingContext, WireMesh } from 'og
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IDisplayHandler } from '../../interfaces/display-handler';
+import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
 // Utils
 import type { RendererApi } from '../../utils/renderer-api';
 // Types
@@ -20,61 +20,61 @@ export class WireframeHandler implements IDisplayHandler {
   public readonly mode: DisplayMode = DisplayMode.Wireframe;
 
   /** Wireframe-модели для добавленных на сцену объектов */
-  private wireMeshes!: WireMesh[];
+  private _wireMeshes!: WireMesh[];
 
   /** Настройки рендеринга для режима wireframe */
-  private readonly wireMeshProgram!: NormalProgram;
+  private readonly _wireMeshProgram!: NormalProgram;
 
   /** WebGl контекст */
-  private readonly context!: OGLRenderingContext;
+  private readonly _context!: OGLRenderingContext;
 
-  constructor(@inject('RendererApi') private api: RendererApi) {
+  constructor(@inject('RendererApi') private _api: RendererApi) {
     // Инициализация массива wireframe-фигур для объектов на сцене
-    this.wireMeshes = [];
+    this._wireMeshes = [];
 
     // Получение WebGl контекста
-    this.context = this.api.getContext();
+    this._context = this._api.getContext();
 
     // Настройки рендеринга для wireframe режима
-    this.wireMeshProgram = new NormalProgram(this.context);
+    this._wireMeshProgram = new NormalProgram(this._context);
   }
 
   /**
    * Применяет wireframe-режим к сцене.
    */
   public handle() {
-    const meshes = this.api.getMeshes();
+    const meshes = this._api.getMeshes();
 
     // Создание wireframe моделей для фигур на сцене
     this.createWireMeshes(meshes);
 
     // Сокрытие фигур для режима wireframe
-    this.api.removeMeshes(meshes);
+    this._api.removeMeshes(meshes);
 
     // Добавление wireframe моделей на сцену
-    this.api.addMeshes(this.wireMeshes);
+    this._api.addMeshes(this._wireMeshes);
   }
 
   /**
    * Отменяет wireframe-режим у сцены.
    */
   rollback(): void {
-    const meshes = this.api.getMeshes();
+    const meshes = this._api.getMeshes();
 
     // Сокрытие фигур для режима wireframe
-    this.api.removeMeshes(this.wireMeshes);
+    this._api.removeMeshes(this._wireMeshes);
 
     // Добавление wireframe моделей на сцену
-    this.api.addMeshes(meshes);
+    this._api.addMeshes(meshes);
   }
 
   /**
    * Освобождает ресурсы хендлера, удаляет wireframe-модели со сцены.
    */
   destroy(): void {
-    if (this.wireMeshes) {
-      this.wireMeshes.length = 0;
-      this.wireMeshes = [];
+    if (this._wireMeshes) {
+      this._wireMeshes.length = 0;
+      this._wireMeshes = [];
     }
   }
 
@@ -84,12 +84,12 @@ export class WireframeHandler implements IDisplayHandler {
   private createWireMeshes(meshes: Mesh[]) {
     for (const mesh of meshes) {
       // Создание wireframe-модели для добавленного объекта
-      const wireMesh = new WireMesh(this.context, {
+      const wireMesh = new WireMesh(this._context, {
         geometry: mesh.geometry,
-        program: this.wireMeshProgram,
+        program: this._wireMeshProgram,
       });
 
-      this.wireMeshes.push(wireMesh);
+      this._wireMeshes.push(wireMesh);
     }
   }
 }

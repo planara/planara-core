@@ -4,18 +4,18 @@ import { Figure, type FigureData, FigureType } from '@planara/types';
 /** @public */
 export class ObjLoader {
   /** Позиции вершин */
-  private positions: number[] = [];
+  private _positions: number[] = [];
 
   /** Нормали вершин */
-  private normals: number[] = [];
+  private _normals: number[] = [];
 
   /** UV-координаты (опционально) */
-  private uvs: number[] = [];
+  private _uvs: number[] = [];
 
   // Временные поля для парсинга файла
-  private tmpPositions: number[][] = [];
-  private tmpNormals: number[][] = [];
-  private tmpUVs: number[][] = [];
+  private _tmpPositions: number[][] = [];
+  private _tmpNormals: number[][] = [];
+  private _tmpUVs: number[][] = [];
 
   /**
    * Загружает OBJ-модель в Figure
@@ -30,13 +30,13 @@ export class ObjLoader {
       const parts = line.trim().split(/\s+/);
       switch (parts[0]) {
         case 'v':
-          this.tmpPositions.push(parts.slice(1).map(Number));
+          this._tmpPositions.push(parts.slice(1).map(Number));
           break;
         case 'vn':
-          this.tmpNormals.push(parts.slice(1).map(Number));
+          this._tmpNormals.push(parts.slice(1).map(Number));
           break;
         case 'vt':
-          this.tmpUVs.push(parts.slice(1).map(Number));
+          this._tmpUVs.push(parts.slice(1).map(Number));
           break;
         case 'f':
           this.processFaceLine(parts);
@@ -48,9 +48,9 @@ export class ObjLoader {
 
     const figureData: FigureData = {
       type: FigureType.Custom,
-      position: this.positions,
-      ...(this.normals.length > 0 && { normal: this.normals }),
-      ...(this.uvs.length > 0 && { uv: this.uvs }),
+      position: this._positions,
+      ...(this._normals.length > 0 && { normal: this._normals }),
+      ...(this._uvs.length > 0 && { uv: this._uvs }),
     };
 
     return new Figure(figureData);
@@ -71,18 +71,18 @@ export class ObjLoader {
       const vnIdx = vnIdxStr ? parseInt(vnIdxStr, 10) : undefined;
 
       if (vIdx !== undefined) {
-        const v = this.tmpPositions[vIdx - 1];
-        if (v) this.positions.push(...v);
+        const v = this._tmpPositions[vIdx - 1];
+        if (v) this._positions.push(...v);
       }
 
       if (vtIdx !== undefined) {
-        const uv = this.tmpUVs[vtIdx - 1];
-        if (uv) this.uvs.push(...uv);
+        const uv = this._tmpUVs[vtIdx - 1];
+        if (uv) this._uvs.push(...uv);
       }
 
       if (vnIdx !== undefined) {
-        const n = this.tmpNormals[vnIdx - 1];
-        if (n) this.normals.push(...n);
+        const n = this._tmpNormals[vnIdx - 1];
+        if (n) this._normals.push(...n);
       }
     }
   }

@@ -1,11 +1,11 @@
 // IOC
 import { injectable, injectAll } from 'tsyringe';
 // Interfaces
-import type { IDisplayManager } from '../interfaces/manager';
-import type { IHandler } from '../interfaces/handler';
+import type { IDisplayManager } from '../../interfaces/manager/display-manager';
+import type { IHandler } from '../../interfaces/handler/handler';
 // Types
 import { DisplayMode } from '@planara/types';
-import type { IDisplayHandler } from '../interfaces/display-handler';
+import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
 
 /**
  * Менеджер для управления отображением
@@ -14,36 +14,36 @@ import type { IDisplayHandler } from '../interfaces/display-handler';
 @injectable()
 export class DisplayManager implements IDisplayManager {
   /** Текущий режим отображения */
-  private currentMode: DisplayMode = DisplayMode.Plane;
+  private _currentMode: DisplayMode = DisplayMode.Plane;
 
   /** Хендлеры, которые управляют отображением */
-  private readonly handlers: Map<DisplayMode, IHandler>;
+  private readonly _handlers: Map<DisplayMode, IHandler>;
 
   constructor(@injectAll('IDisplayHandler') handlers: IDisplayHandler[]) {
-    this.handlers = new Map(handlers.map((h) => [h.mode, h]));
+    this._handlers = new Map(handlers.map((h) => [h.mode, h]));
   }
 
   /** Установка режима отображения */
   manage(mode: DisplayMode): void {
-    if (mode === this.currentMode) return;
+    if (mode === this._currentMode) return;
 
     // Откат текущего режима
-    this.handlers.get(this.currentMode)?.rollback();
+    this._handlers.get(this._currentMode)?.rollback();
 
     // Для plane - просто откат всех хендлеров
     if (mode !== DisplayMode.Plane) {
-      this.handlers.get(mode)?.handle();
+      this._handlers.get(mode)?.handle();
     }
 
-    this.currentMode = mode;
+    this._currentMode = mode;
   }
 
   /** Освобождение ресурсов */
   destroy(): void {
-    if (this.handlers) {
-      this.handlers.clear();
+    if (this._handlers) {
+      this._handlers.clear();
     }
 
-    this.currentMode = DisplayMode.Plane;
+    this._currentMode = DisplayMode.Plane;
   }
 }

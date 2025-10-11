@@ -1,12 +1,16 @@
 // Core
 import { Renderer } from './renderer';
-import { GridHelper, AxesHelper, Vec2, type Mesh, Raycast, type OGLRenderingContext } from 'ogl';
+import { GridHelper, AxesHelper, Vec2, Raycast, type MeshRenderCallback, type Mesh } from 'ogl';
 // Types
 import type { Figure } from '@planara/types';
 // Extensions
 import { OrbitWithState } from '../extensions/orbit-extension';
+import type { EditorMesh } from '../extensions/mesh-extension';
 // IOC
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
+// Event bus
+import { EventBus } from '../events/event-bus';
+import { EventTopics } from '../events/event-topics';
 
 /**
  * Рендерер для редактора.
@@ -17,24 +21,26 @@ import { injectable } from 'tsyringe';
 @injectable()
 export class EditorRenderer extends Renderer {
   /** Orbit-контроллер для управления камерой */
-  private orbit!: OrbitWithState;
+  private _orbit!: OrbitWithState;
 
   /** Raycast для подсветки моделей при наведении */
-  private raycast!: Raycast;
+  private _raycast!: Raycast;
 
   /** Курсор мыши для остлеживания наведения на 3D-модель */
-  private mouse!: Vec2;
+  private _mouse!: Vec2;
 
   /** Были ли зарегистрированы обработчики событий для мыши */
-  private isEventListenersAdded!: boolean;
+  private _isEventListenersAdded!: boolean;
 
   /**
    * Инициализация сцены редактора.
    * Создает сетку, оси координат и orbit-контроллер.
-   * @param canvas - HTMLCanvasElement для рендеринга
    */
-  public constructor(canvas: HTMLCanvasElement) {
-    super(canvas);
+  public constructor(
+    @inject('Canvas') private _canvas: HTMLCanvasElement,
+    @inject('EventBus') private _bus: EventBus,
+  ) {
+    super(_canvas);
 
     // сетка
     const grid = new GridHelper(this.gl.gl, { size: 10, divisions: 10 });
@@ -46,56 +52,16 @@ export class EditorRenderer extends Renderer {
     axes.setParent(this.scene);
 
     // orbit
-    this.orbit = new OrbitWithState(this.camera, { element: this.canvas });
+    this._orbit = new OrbitWithState(this.camera, { element: this.canvas });
 
     // raycast
-    this.raycast = new Raycast();
+    this._raycast = new Raycast();
 
     // курсор мыши
-    this.mouse = new Vec2();
+    this._mouse = new Vec2();
 
     // Изначально обработчики мыши не зарегистрированы
-    this.isEventListenersAdded = false;
-  }
-
-  /**
-   * Добавляет фигуру в сцену и сохраняет его во внутреннем массиве.
-   *
-   * @param mesh - Фигура для добавления в сцену.
-   * @internal
-   */
-  public addMesh(mesh: Mesh): void {
-    this.scene.addChild(mesh);
-  }
-
-  /**
-   * Возвращает WebGL контекст рендерера.
-   *
-   * @returns Контекст WebGL (OGLRenderingContext) текущей сцены.
-   * @internal
-   */
-  public getContext(): OGLRenderingContext {
-    return this.gl.gl;
-  }
-
-  /**
-   * Убирает фигуру со сцены
-   *
-   * @param mesh - Фигура для удаления со сцены.
-   * @internal
-   */
-  public removeMesh(mesh: Mesh): void {
-    this.scene.removeChild(mesh);
-  }
-
-  /**
-   * Возвращает список всех фигур, находящихся в сцене.
-   *
-   * @returns Массив текущих фигур.
-   * @internal
-   */
-  public getMeshes(): Mesh[] {
-    return this.meshes;
+    this._isEventListenersAdded = false;
   }
 
   /**
@@ -103,7 +69,7 @@ export class EditorRenderer extends Renderer {
    */
   protected update() {
     // Защита от вызова до инициализации
-    this.orbit?.update();
+    this._orbit?.update();
   }
 
   /**
@@ -122,16 +88,8 @@ export class EditorRenderer extends Renderer {
       mesh.geometry.raycast = name.includes('Sphere') ? 'sphere' : 'box';
     }
 
-    // создание поля isHit
-    (mesh as any).isHit = false;
-
-    // регистрация функции обновления uniform перед рендером
-    mesh.onBeforeRender(({ mesh }) => {
-      this.updateHitUniform(mesh);
-    });
-
     // регистрация обработчиков мыши
-    if (!this.isEventListenersAdded) {
+    if (!this._isEventListenersAdded) {
       this.initMouseListeners();
     }
 
@@ -139,54 +97,90 @@ export class EditorRenderer extends Renderer {
   }
 
   /**
-   * Обновление uniform uHit для конкретной 3D-модели
+   * Устанавливает callback, который будет вызываться перед рендером конкретного меша.
+   *
+   * @param mesh - Меш, для которого нужно задать callback.
+   * @param f - Функция обратного вызова, выполняемая перед рендером меша.
+   * @internal
    */
-  protected updateHitUniform(mesh: Mesh) {
-    this.program.uniforms.uHit.value = (mesh as any).isHit ? 1 : 0;
+  public setMeshBeforeRender(mesh: Mesh, f: MeshRenderCallback) {
+    mesh.onBeforeRender(f);
   }
 
   /**
    * Инициализация обработчиков мыши для raycast
    */
   private initMouseListeners() {
-    document.addEventListener('mousemove', this.handleMouseMove, false);
-    this.isEventListenersAdded = true;
+    document.addEventListener('mousemove', this._handleMouseMove, false);
+    document.addEventListener('click', this._handleMouseClick, false);
+    this._isEventListenersAdded = true;
   }
 
   /**
    * Обработчик движения мыши
    */
-  private handleMouseMove = (e: MouseEvent) => {
-    // Если используется камера, то raycast выключен
-    if (this.orbit.isInteracting) return;
+  private _handleMouseMove = (e: MouseEvent) => {
+    this._processRaycastEvent(e, EventTopics.SelectHover, true);
+  };
+
+  /**
+   * Обработчик клика мыши
+   */
+  private _handleMouseClick = (e: MouseEvent) => {
+    this._processRaycastEvent(e, EventTopics.SelectClick, false);
+  };
+
+  /**
+   * Универсальная логика raycast-события
+   */
+  private _processRaycastEvent(
+    e: MouseEvent,
+    topic: EventTopics.SelectHover | EventTopics.SelectClick,
+    markHit: boolean
+  ) {
+    // Если orbit вращает камеру — не обрабатываем
+    if (this._orbit.isInteracting) return;
 
     // нормализованные координаты [-1, 1]
-    this.mouse.set(2.0 * (e.x / this.gl.width) - 1.0, 2.0 * (1.0 - e.y / this.gl.height) - 1.0);
+    this._mouse.set(
+      2.0 * (e.x / this.gl.width) - 1.0,
+      2.0 * (1.0 - e.y / this.gl.height) - 1.0
+    );
 
     // обновление луча
-    this.raycast.castMouse(this.camera, this.mouse);
+    this._raycast.castMouse(this.camera, this._mouse);
 
-    // сброс isHit для всех фигур
-    this.meshes.forEach((mesh) => ((mesh as any).isHit = false));
+    // сброс isHit для всех фигур (только при hover)
+    if (markHit) {
+      this.meshes.forEach((mesh) => ((mesh as EditorMesh).isHit = false));
+    }
 
-    // получение фигур, на которые навелись
-    const hits = this.raycast.intersectBounds(this.meshes);
+    // пересечение с мешами
+    const hits = this._raycast.intersectBounds(this.meshes);
+    const mesh = hits.length ? hits[0] : null;
 
-    // отмечаем их как hit
-    hits.forEach((mesh) => ((mesh as any).isHit = true));
-  };
+    // отправляем событие через EventBus
+    this._bus.emit(topic, mesh ? { mesh } : null);
+
+    // отмечаем hit (только при hover)
+    if (markHit) {
+      hits.forEach((mesh) => ((mesh as EditorMesh).isHit = true));
+    }
+  }
 
   /** Деструктор */
   public destroy() {
     // Очистка обработчиков событий, если были добавлены
-    if (this.isEventListenersAdded) {
-      window.removeEventListener('mousemove', this.handleMouseMove, false);
-      this.isEventListenersAdded = false;
+    if (this._isEventListenersAdded) {
+      document.removeEventListener('mousemove', this._handleMouseMove, false);
+      document.removeEventListener('click', this._handleMouseClick, false);
+      this._isEventListenersAdded = false;
     }
 
-    this.orbit = null!;
-    this.raycast = null!;
-    this.mouse = null!;
+    this._orbit.destroy();
+    this._orbit = null!;
+    this._raycast = null!;
+    this._mouse = null!;
 
     super.destroy();
   }

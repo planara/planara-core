@@ -8,6 +8,7 @@ import type { DisplayMode } from '@planara/types';
  * Используется только для DI.
  *
  * Расширяет {@link IHandler} и добавляет поле `mode`
+ * @internal
  */
 export interface IDisplayHandler extends IHandler {
   mode: DisplayMode;
