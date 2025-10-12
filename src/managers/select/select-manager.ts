@@ -22,7 +22,7 @@ export class SelectManager implements ISelectManager {
 
   constructor(
     @inject('EventBus') private _eventBus: EventBus,
-    @injectAll('ISelectHandler') handlers: ISelectHandler[]
+    @injectAll('ISelectHandler') handlers: ISelectHandler[],
   ) {
     // Получение хендлеров
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));
@@ -62,7 +62,7 @@ export class SelectManager implements ISelectManager {
 
     // Обработка события
     handler?.handle(payload, SelectEventType.Click);
-  }
+  };
 
   destroy(): void {
     this._eventBus.off(EventTopics.SelectHover, this._onHover);

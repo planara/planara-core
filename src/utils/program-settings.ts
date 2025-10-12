@@ -66,7 +66,7 @@ export function _createProgram(gl: OGLRenderingContext): Program {
     cullFace: false,
     uniforms: {
       uHit: { value: 0 },
-      uSelected: { value: 0 }
+      uSelected: { value: 0 },
     },
   });
 }

@@ -136,16 +136,13 @@ export class EditorRenderer extends Renderer {
   private _processRaycastEvent(
     e: MouseEvent,
     topic: EventTopics.SelectHover | EventTopics.SelectClick,
-    markHit: boolean
+    markHit: boolean,
   ) {
     // Если orbit вращает камеру — не обрабатываем
     if (this._orbit.isInteracting) return;
 
     // нормализованные координаты [-1, 1]
-    this._mouse.set(
-      2.0 * (e.x / this.gl.width) - 1.0,
-      2.0 * (1.0 - e.y / this.gl.height) - 1.0
-    );
+    this._mouse.set(2.0 * (e.x / this.gl.width) - 1.0, 2.0 * (1.0 - e.y / this.gl.height) - 1.0);
 
     // обновление луча
     this._raycast.castMouse(this.camera, this._mouse);

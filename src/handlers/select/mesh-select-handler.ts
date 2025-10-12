@@ -63,7 +63,7 @@ export class MeshSelectHandler implements ISelectHandler {
     }
 
     console.log(`Selected mesh: ${mesh.id}`);
-  }
+  };
 
   /** Выключение подсветки у моделей */
   rollback(): void {
