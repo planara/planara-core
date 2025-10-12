@@ -1,9 +1,18 @@
 // Core
-import { Renderer as OGLRenderer, Camera, Transform, Mesh, Geometry, type Program } from 'ogl';
+import {
+  Renderer as OGLRenderer,
+  Camera,
+  Transform,
+  Geometry,
+  type Program,
+  type OGLRenderingContext,
+  type Mesh,
+} from 'ogl';
 // Utils
 import { _createProgram } from '../utils/program-settings';
 // Types
 import type { Figure } from '@planara/types';
+import { EditorMesh } from '../extensions/mesh-extension';
 
 /**
  * Абстрактный базовый класс рендерера для работы с WebGL через OGL.
@@ -12,19 +21,19 @@ import type { Figure } from '@planara/types';
  */
 export abstract class Renderer {
   /** Экземпляр рендерера OGL */
-  protected gl: OGLRenderer;
+  protected gl!: OGLRenderer;
 
   /** Корневой объект сцены */
-  protected scene: Transform;
+  protected scene!: Transform;
 
   /** Камера для сцены */
-  protected camera: Camera;
+  protected camera!: Camera;
 
   /** HTML-элемент canvas, на котором рендерится сцена */
-  protected canvas: HTMLCanvasElement;
+  protected canvas!: HTMLCanvasElement;
 
   /** Program для настройки рендеринга моделей */
-  protected program: Program;
+  protected program!: Program;
 
   /** Массив моделей на сцене */
   protected meshes!: Mesh[];
@@ -104,7 +113,7 @@ export abstract class Renderer {
     });
 
     // Создание модели с настройками для рендеринга
-    const mesh = new Mesh(this.gl.gl, {
+    const mesh = new EditorMesh(this.gl.gl, {
       geometry,
       program: this.program,
     });
@@ -115,6 +124,56 @@ export abstract class Renderer {
     // Добавление фигуры в массив моделей на сцене
     this.meshes.push(mesh);
     return mesh;
+  }
+
+  /**
+   * Добавляет фигуру в сцену и сохраняет его во внутреннем массиве.
+   *
+   * @param mesh - Фигура для добавления в сцену.
+   * @internal
+   */
+  public addMesh(mesh: Mesh): void {
+    this.scene.addChild(mesh);
+  }
+
+  /**
+   * Возвращает WebGL контекст рендерера.
+   *
+   * @returns Контекст WebGL (OGLRenderingContext) текущей сцены.
+   * @internal
+   */
+  public getContext(): OGLRenderingContext {
+    return this.gl.gl;
+  }
+
+  /**
+   * Убирает фигуру со сцены
+   *
+   * @param mesh - Фигура для удаления со сцены.
+   * @internal
+   */
+  public removeMesh(mesh: Mesh): void {
+    this.scene.removeChild(mesh);
+  }
+
+  /**
+   * Возвращает список всех фигур, находящихся в сцене.
+   *
+   * @returns Массив текущих фигур.
+   * @internal
+   */
+  public getMeshes(): Mesh[] {
+    return this.meshes;
+  }
+
+  /**
+   * Возвращает настройку для рендеринга.
+   *
+   * @returns Program для настройки рендеринга моделей.
+   * @internal
+   */
+  public getProgram(): Program {
+    return this.program;
   }
 
   /** Деструктор */

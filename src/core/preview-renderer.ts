@@ -10,7 +10,7 @@ import { Orbit, Vec3 } from 'ogl';
  */
 export class PreviewRenderer extends Renderer {
   /** Orbit-контроллер для управления камерой */
-  private orbit!: Orbit;
+  private _orbit!: Orbit;
 
   /**
    * Инициализация сцены предпросмотра.
@@ -20,7 +20,7 @@ export class PreviewRenderer extends Renderer {
     super(canvas);
 
     // Ограничение вращения камеры по горизонтали
-    this.orbit = new Orbit(this.camera, {
+    this._orbit = new Orbit(this.camera, {
       element: this.canvas,
       target: new Vec3(0, 0, 0),
       minPolarAngle: Math.PI / 2,
@@ -36,6 +36,6 @@ export class PreviewRenderer extends Renderer {
    */
   protected update() {
     // Защита от вызова до инициализации
-    this.orbit?.update();
+    this._orbit?.update();
   }
 }

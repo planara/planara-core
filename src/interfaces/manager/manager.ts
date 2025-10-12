@@ -14,9 +14,3 @@ export interface IManager {
    */
   destroy(): void;
 }
-
-/**
- * Маркерный интерфейс для менеджеров отображения.
- * @public
- */
-export interface IDisplayManager extends IManager {}
