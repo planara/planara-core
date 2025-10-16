@@ -35,7 +35,7 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
 
   // ============== CORE ===================
   container.registerSingleton<EditorRenderer>('EditorRenderer', EditorRenderer);
-  container.registerSingleton('RendererApi', RendererApi);
+  container.registerSingleton<RendererApi>('RendererApi', RendererApi);
 
   // ============== HANDLERS ===============
   container.registerSingleton<IDisplayHandler>('IDisplayHandler', WireframeHandler);

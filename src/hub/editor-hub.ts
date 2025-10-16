@@ -18,7 +18,7 @@ export class EditorHub {
     @inject('ISelectManager') private _selectManager: ISelectManager,
     @inject('EditorRenderer') private _renderer: EditorRenderer,
   ) {
-    _selectManager.manage(SelectMode.Mesh);
+    this.setSelectMode(SelectMode.Mesh);
   }
 
   setDisplayMode(mode: DisplayMode) {

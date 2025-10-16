@@ -1,18 +1,7 @@
 // Core
-import {
-  Renderer as OGLRenderer,
-  Camera,
-  Transform,
-  Geometry,
-  type Program,
-  type OGLRenderingContext,
-  type Mesh,
-} from 'ogl';
-// Utils
-import { _createProgram } from '../utils/program-settings';
+import * as THREE from 'three';
 // Types
 import type { Figure } from '@planara/types';
-import { EditorMesh } from '../extensions/mesh-extension';
 
 /**
  * Абстрактный базовый класс рендерера для работы с WebGL через OGL.
@@ -20,23 +9,20 @@ import { EditorMesh } from '../extensions/mesh-extension';
  * @public
  */
 export abstract class Renderer {
-  /** Экземпляр рендерера OGL */
-  protected gl!: OGLRenderer;
-
   /** Корневой объект сцены */
-  protected scene!: Transform;
+  protected scene!: THREE.Scene;
 
   /** Камера для сцены */
-  protected camera!: Camera;
+  protected camera!: THREE.PerspectiveCamera;
+
+  /** Экземпляр рендерера Three.js */
+  protected renderer!: THREE.WebGLRenderer;
 
   /** HTML-элемент canvas, на котором рендерится сцена */
   protected canvas!: HTMLCanvasElement;
 
-  /** Program для настройки рендеринга моделей */
-  protected program!: Program;
-
   /** Массив моделей на сцене */
-  protected meshes!: Mesh[];
+  protected meshes: THREE.Mesh[] = [];
 
   /**
    * Конструктор рендерера
@@ -46,44 +32,47 @@ export abstract class Renderer {
     // Canvas из html верстки
     this.canvas = canvas;
 
-    // Рендерер ogl
-    this.gl = new OGLRenderer({ canvas, dpr: 2 });
-
-    // Настройка рендерера под размеры canvas
-    this.gl.setSize(canvas.clientWidth, canvas.clientHeight);
-
-    // Настройка фона
-    this.gl.gl.clearColor(0.1, 0.1, 0.1, 1.0);
-
     // Добавление сцены
-    this.scene = new Transform();
+    this.scene = new THREE.Scene();
+    // Настройка фона
+    this.scene.background = new THREE.Color(0x1a1a1a);
 
     // Добавление и настройка камеры
-    this.camera = new Camera(this.gl.gl, { fov: 45 });
+    this.camera = new THREE.PerspectiveCamera(
+      45,
+      canvas.clientWidth / canvas.clientHeight,
+      0.1,
+      1000,
+    );
     this.camera.position.set(1, 1, 7);
-    this.camera.lookAt([0, 0, 0]);
 
-    // Добавление Program для настройки рендеринга
-    this.program = _createProgram(this.gl.gl);
+    // Рендерер three.js
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
-    // Инициализация массива фигур на сцене
-    this.meshes = [];
+    // Освещение
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // общий свет
+    this.scene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 7);
+    this.scene.add(directionalLight);
   }
 
   /**
    * Обновляет размер рендерера и камеры при изменении размеров canvas.
    */
   public resize() {
-    // Синхронизация размеров canvas с рендерером и камерой
-    this.gl.setSize(this.canvas.width, this.canvas.height);
-    this.camera.perspective({ aspect: this.canvas.width / this.canvas.height });
+    this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
   }
 
   /**
    * Выполняет рендеринг сцены с текущей камерой.
    */
   protected render() {
-    this.gl.render({ scene: this.scene, camera: this.camera });
+    this.renderer.render(this.scene, this.camera);
   }
 
   /**
@@ -97,32 +86,42 @@ export abstract class Renderer {
   public loop() {
     this.update();
     this.render();
-    requestAnimationFrame(this.loop.bind(this));
+    requestAnimationFrame(() => this.loop());
   }
 
   /**
    * Публичный метод для добавления фигуры.
    * @param figure - Данные фигуры: position, normal, uv
    */
-  public addFigure(figure: Figure) {
+  public addFigure(figure: Figure): THREE.Mesh {
     // Загрузка геометрии модели
-    const geometry = new Geometry(this.gl.gl, {
-      position: { size: 3, data: new Float32Array(figure.position) },
-      normal: { size: 3, data: new Float32Array(figure.normal ?? []) },
-      uv: { size: 2, data: new Float32Array(figure.uv ?? []) },
+    const geometry = new THREE.BufferGeometry();
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(figure.position, 3));
+
+    if (figure.normal) {
+      geometry.setAttribute('normal', new THREE.Float32BufferAttribute(figure.normal, 3));
+    }
+
+    if (figure.uv) {
+      geometry.setAttribute('uv', new THREE.Float32BufferAttribute(figure.uv, 2));
+    }
+
+    // Добавление базового материала
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xbfbfbf,
+      metalness: 0.0,
+      roughness: 0.6,
     });
 
-    // Создание модели с настройками для рендеринга
-    const mesh = new EditorMesh(this.gl.gl, {
-      geometry,
-      program: this.program,
-    });
+    // Создание объекта фигуры
+    const mesh = new THREE.Mesh(geometry, material);
 
-    // Добавление модели на сцену
-    mesh.setParent(this.scene);
-
-    // Добавление фигуры в массив моделей на сцене
+    // Добавление на сцену
+    this.scene.add(mesh);
+    // Сохранение в локальном массиве
     this.meshes.push(mesh);
+
     return mesh;
   }
 
@@ -132,18 +131,9 @@ export abstract class Renderer {
    * @param mesh - Фигура для добавления в сцену.
    * @internal
    */
-  public addMesh(mesh: Mesh): void {
-    this.scene.addChild(mesh);
-  }
-
-  /**
-   * Возвращает WebGL контекст рендерера.
-   *
-   * @returns Контекст WebGL (OGLRenderingContext) текущей сцены.
-   * @internal
-   */
-  public getContext(): OGLRenderingContext {
-    return this.gl.gl;
+  public addMesh(mesh: THREE.Mesh) {
+    this.scene.add(mesh);
+    this.meshes.push(mesh);
   }
 
   /**
@@ -152,8 +142,9 @@ export abstract class Renderer {
    * @param mesh - Фигура для удаления со сцены.
    * @internal
    */
-  public removeMesh(mesh: Mesh): void {
-    this.scene.removeChild(mesh);
+  public removeMesh(mesh: THREE.Mesh) {
+    this.scene.remove(mesh);
+    this.meshes = this.meshes.filter((m) => m !== mesh);
   }
 
   /**
@@ -162,18 +153,8 @@ export abstract class Renderer {
    * @returns Массив текущих фигур.
    * @internal
    */
-  public getMeshes(): Mesh[] {
+  public getMeshes(): THREE.Mesh[] {
     return this.meshes;
-  }
-
-  /**
-   * Возвращает настройку для рендеринга.
-   *
-   * @returns Program для настройки рендеринга моделей.
-   * @internal
-   */
-  public getProgram(): Program {
-    return this.program;
   }
 
   /** Деструктор */
@@ -186,9 +167,7 @@ export abstract class Renderer {
     this.scene = null!;
     this.camera = null!;
 
-    this.program = null!;
-
-    this.gl = null!;
+    this.renderer = null!;
 
     this.canvas = null!;
   }

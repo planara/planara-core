@@ -1,33 +1,31 @@
 // Core
-import { Orbit } from 'ogl';
+import { Camera } from 'three';
+// Extensions
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 /**
- * Расширение для Orbit с отслеживанием управления камерой
+ * Расширение для OrbitControls с отслеживанием управления камерой
  * @internal
  */
-export class OrbitWithState extends Orbit {
+export class OrbitWithState extends OrbitControls {
   /** Используется ли Orbit-controls */
   public isInteracting: boolean = false;
 
-  private readonly _element;
-
-  constructor(object: any, options: any = {}) {
-    super(object, options);
-
-    this._element = options.element || document;
+  constructor(camera: Camera, domElement?: HTMLElement | null) {
+    super(camera, domElement);
 
     // Добавление обработчиков событий
-    this._element.addEventListener('mousedown', () => (this.isInteracting = true));
-    this._element.addEventListener('mouseup', () => (this.isInteracting = false));
-    this._element.addEventListener('touchstart', () => (this.isInteracting = true));
-    this._element.addEventListener('touchend', () => (this.isInteracting = false));
+    this.domElement?.addEventListener('mousedown', () => (this.isInteracting = true));
+    this.domElement?.addEventListener('mouseup', () => (this.isInteracting = false));
+    this.domElement?.addEventListener('touchstart', () => (this.isInteracting = true));
+    this.domElement?.addEventListener('touchend', () => (this.isInteracting = false));
   }
 
   /** Очистка новых обработчиков событий */
   public destroy() {
-    this._element.removeEventListener('mousedown', () => (this.isInteracting = true));
-    this._element.removeEventListener('mouseup', () => (this.isInteracting = false));
-    this._element.removeEventListener('touchstart', () => (this.isInteracting = true));
-    this._element.removeEventListener('touchend', () => (this.isInteracting = false));
+    this.domElement?.removeEventListener('mousedown', () => (this.isInteracting = true));
+    this.domElement?.removeEventListener('mouseup', () => (this.isInteracting = false));
+    this.domElement?.removeEventListener('touchstart', () => (this.isInteracting = true));
+    this.domElement?.removeEventListener('touchend', () => (this.isInteracting = false));
   }
 }

@@ -15,8 +15,6 @@ export * from './interfaces/manager/display-manager';
 export * from './interfaces/manager/select-manager';
 // Event Bus
 export * from './events/event-bus';
-// Extensions
-export * from './extensions/mesh-extension';
 // Types
 export * from './events/editor-events';
 export * from './events/event-topics';
