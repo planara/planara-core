@@ -20,6 +20,7 @@ export class DisplayManager implements IDisplayManager {
   private readonly _handlers: Map<DisplayMode, IHandler>;
 
   constructor(@injectAll('IDisplayHandler') handlers: IDisplayHandler[]) {
+    console.log('displayManager');
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));
   }
 

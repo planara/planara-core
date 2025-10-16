@@ -1,5 +1,5 @@
 // Core
-import type { Mesh } from 'ogl';
+import * as THREE from 'three';
 
 /**
  * Интерфейс для управления фигурами внутри рендерера.
@@ -12,33 +12,33 @@ export interface IMeshApi {
    *
    * @param mesh - Фигура, которую необходимо добавить.
    */
-  addMesh(mesh: Mesh): void;
+  addMesh(mesh: THREE.Mesh): void;
 
   /**
    * Добавляет несколько фигур в сцену за один вызов.
    *
    * @param meshes - Массив фигур для добавления.
    */
-  addMeshes(meshes: Mesh[]): void;
+  addMeshes(meshes: THREE.Mesh[]): void;
 
   /**
    * Удаляет фигуру из сцены.
    *
    * @param mesh - Фигура, которую необходимо удалить.
    */
-  removeMesh(mesh: Mesh): void;
+  removeMesh(mesh: THREE.Mesh): void;
 
   /**
    * Удаляет несколько фигур из сцены за один вызов.
    *
    * @param meshes - Массив фигур для удаления.
    */
-  removeMeshes(meshes: Mesh[]): void;
+  removeMeshes(meshes: THREE.Mesh[]): void;
 
   /**
    * Возвращает список всех фигур, находящихся в сцене.
    *
    * @returns Массив текущих фигур.
    */
-  getMeshes(): Mesh[];
+  getMeshes(): THREE.Mesh[];
 }

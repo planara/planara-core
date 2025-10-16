@@ -1,5 +1,5 @@
 // Core
-import type { Mesh } from 'ogl';
+import * as THREE from 'three';
 // Topics
 import { EventTopics } from './event-topics';
 
@@ -10,8 +10,8 @@ import { EventTopics } from './event-topics';
  */
 export type EditorEvents = {
   /** Событие наведения на объект (hover). Payload: объект с mesh или null */
-  [EventTopics.SelectHover]: { mesh: Mesh } | null;
+  [EventTopics.SelectHover]: { mesh: THREE.Object3D } | null;
 
   /** Событие клика по объекту. Payload: объект с mesh или null */
-  [EventTopics.SelectClick]: { mesh: Mesh } | null;
+  [EventTopics.SelectClick]: { mesh: THREE.Object3D } | null;
 };

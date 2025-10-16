@@ -44,8 +44,6 @@ export class SelectManager implements ISelectManager {
 
   /** Обработчик события наведения на модель */
   private _onHover = (payload: EditorEvents[EventTopics.SelectHover]) => {
-    if (!payload) return;
-
     // Получение хендлера под нужный режим
     const handler = this._handlers.get(this._currentMode);
 
@@ -55,8 +53,6 @@ export class SelectManager implements ISelectManager {
 
   /** Обработчик события клика на модель */
   private _onClick = (payload: EditorEvents[EventTopics.SelectClick]) => {
-    if (!payload) return;
-
     // Получение хендлера под нужный режим
     const handler = this._handlers.get(this._currentMode);
 

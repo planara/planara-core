@@ -1,5 +1,5 @@
 // Core
-import { type Mesh, NormalProgram, type OGLRenderingContext, WireMesh } from 'ogl';
+import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
@@ -19,77 +19,90 @@ export class WireframeHandler implements IDisplayHandler {
   /** Режим отображения */
   public readonly mode: DisplayMode = DisplayMode.Wireframe;
 
-  /** Wireframe-модели для добавленных на сцену объектов */
-  private _wireMeshes!: WireMesh[];
+  /** Список wireframe-объектов для текущих мешей */
+  private _wireframes: THREE.LineSegments[] = [];
 
-  /** Настройки рендеринга для режима wireframe */
-  private readonly _wireMeshProgram!: NormalProgram;
+  /** Ссылка на API рендерера */
+  private readonly _api: RendererApi;
 
-  /** WebGl контекст */
-  private readonly _context!: OGLRenderingContext;
-
-  constructor(@inject('RendererApi') private _api: RendererApi) {
-    // Инициализация массива wireframe-фигур для объектов на сцене
-    this._wireMeshes = [];
-
-    // Получение WebGl контекста
-    this._context = this._api.getContext();
-
-    // Настройки рендеринга для wireframe режима
-    this._wireMeshProgram = new NormalProgram(this._context);
+  constructor(@inject('RendererApi') api: RendererApi) {
+    this._api = api;
   }
 
   /**
    * Применяет wireframe-режим к сцене.
    */
-  public handle() {
+  public handle(): void {
     const meshes = this._api.getMeshes();
 
-    // Создание wireframe моделей для фигур на сцене
-    this.createWireMeshes(meshes);
+    // Если уже в wireframe — ничего не делаем
+    if (this._wireframes.length > 0) return;
 
-    // Сокрытие фигур для режима wireframe
-    this._api.removeMeshes(meshes);
+    // Создаем wireframe для каждого меша
+    this._wireframes = meshes.map((mesh) => {
+      // Создаём геометрию рёбер поверх исходной
+      const geo = new THREE.WireframeGeometry(mesh.geometry);
 
-    // Добавление wireframe моделей на сцену
-    this._api.addMeshes(this._wireMeshes);
-  }
-
-  /**
-   * Отменяет wireframe-режим у сцены.
-   */
-  rollback(): void {
-    const meshes = this._api.getMeshes();
-
-    // Сокрытие фигур для режима wireframe
-    this._api.removeMeshes(this._wireMeshes);
-
-    // Добавление wireframe моделей на сцену
-    this._api.addMeshes(meshes);
-  }
-
-  /**
-   * Освобождает ресурсы хендлера, удаляет wireframe-модели со сцены.
-   */
-  destroy(): void {
-    if (this._wireMeshes) {
-      this._wireMeshes.length = 0;
-      this._wireMeshes = [];
-    }
-  }
-
-  /**
-   * Создание wireframe-моделей для фигур на сцене.
-   */
-  private createWireMeshes(meshes: Mesh[]) {
-    for (const mesh of meshes) {
-      // Создание wireframe-модели для добавленного объекта
-      const wireMesh = new WireMesh(this._context, {
-        geometry: mesh.geometry,
-        program: this._wireMeshProgram,
+      // Материал для отображения wireframe
+      const mat = new THREE.LineBasicMaterial({
+        color: 0x00ffff, // бирюзовый, как в Blender
+        linewidth: 1,
       });
 
-      this._wireMeshes.push(wireMesh);
+      // Создаём LineSegments для отображения рёбер
+      const line = new THREE.LineSegments(geo, mat);
+
+      // Совмещаем позицию, вращение и масштаб с исходным мешем
+      line.position.copy(mesh.position);
+      line.rotation.copy(mesh.rotation);
+      line.scale.copy(mesh.scale);
+
+      // Добавляем линию как дочерний элемент меша
+      // — чтобы рёбра двигались и вращались вместе с ним
+      mesh.add(line);
+
+      return line;
+    });
+
+    // Просто скрываем оригинальную геометрию, но меши оставляем в сцене
+    // (так как линии теперь внутри мешей)
+    meshes.forEach((mesh) => {
+      const material = mesh.material as THREE.Material;
+      material.visible = false;
+    });
+  }
+
+  /**
+   * Отключает wireframe-режим и возвращает оригинальные меши.
+   */
+  public rollback(): void {
+    const meshes = this._api.getMeshes();
+
+    // Убираем линии из мешей
+    for (const mesh of meshes) {
+      const wire = this._wireframes.find((wf) => wf.parent === mesh);
+      if (wire) {
+        mesh.remove(wire);
+        wire.geometry.dispose();
+        (wire.material as THREE.Material).dispose();
+      }
+
+      // Возвращаем видимость мешей
+      const material = mesh.material as THREE.Material;
+      material.visible = true;
     }
+
+    this._wireframes = [];
+  }
+
+  /**
+   * Очистка ресурсов.
+   */
+  public destroy(): void {
+    for (const wf of this._wireframes) {
+      wf.geometry.dispose();
+      (wf.material as THREE.Material).dispose();
+    }
+    this._wireframes = [];
   }
 }
