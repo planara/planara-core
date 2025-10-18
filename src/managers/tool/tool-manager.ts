@@ -45,7 +45,7 @@ export class ToolManager implements IToolManager {
     this._handlers.get(this._currentTool)?.rollback();
 
     // Использование нового инструмента
-    this._handlers.get(tool)?.handle();
+    this._handlers.get(tool)?.handle(this._currentObject);
 
     // Сохранение нового инструмента, для отката при выборе нового
     this._currentTool = tool;
