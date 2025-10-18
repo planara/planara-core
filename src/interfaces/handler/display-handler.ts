@@ -11,5 +11,6 @@ import type { DisplayMode } from '@planara/types';
  * @internal
  */
 export interface IDisplayHandler extends IHandler {
+  /** Режим отображения, за который отвечает хендлер */
   mode: DisplayMode;
 }

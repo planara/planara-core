@@ -9,4 +9,7 @@ export enum EventTopics {
 
   /** Событие клика по объекту. Payload: mesh: Mesh | null */
   SelectClick = 'select.click',
+
+  /** Событие выбора объекта для редактирования. Payload: mode: SelectMode, object: THREE.Object3D | null */
+  ToolSelect = 'tool.select',
 }

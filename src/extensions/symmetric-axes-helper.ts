@@ -1,3 +1,4 @@
+// Core
 import * as THREE from 'three';
 
 export class SymmetricAxesHelper extends THREE.Group {

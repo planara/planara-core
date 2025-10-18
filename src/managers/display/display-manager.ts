@@ -19,13 +19,12 @@ export class DisplayManager implements IDisplayManager {
   /** Хендлеры, которые управляют отображением */
   private readonly _handlers: Map<DisplayMode, IHandler>;
 
-  constructor(@injectAll('IDisplayHandler') handlers: IDisplayHandler[]) {
-    console.log('displayManager');
+  public constructor(@injectAll('IDisplayHandler') handlers: IDisplayHandler[]) {
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));
   }
 
   /** Установка режима отображения */
-  manage(mode: DisplayMode): void {
+  public manage(mode: DisplayMode): void {
     if (mode === this._currentMode) return;
 
     // Откат текущего режима
@@ -40,11 +39,13 @@ export class DisplayManager implements IDisplayManager {
   }
 
   /** Освобождение ресурсов */
-  destroy(): void {
+  public destroy(): void {
+    // Очистка хендлеров
     if (this._handlers) {
       this._handlers.clear();
     }
 
+    // Возвращение дефолтного значения
     this._currentMode = DisplayMode.Plane;
   }
 }

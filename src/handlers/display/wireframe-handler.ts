@@ -4,10 +4,9 @@ import * as THREE from 'three';
 import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
-// Utils
-import type { RendererApi } from '../../utils/renderer-api';
 // Types
 import { DisplayMode } from '@planara/types';
+import type { IMeshApi } from '../../interfaces/api/mesh-api';
 
 /**
  * Хендлер для включения wireframe-режима.
@@ -22,12 +21,7 @@ export class WireframeHandler implements IDisplayHandler {
   /** Список wireframe-объектов для текущих мешей */
   private _wireframes: THREE.LineSegments[] = [];
 
-  /** Ссылка на API рендерера */
-  private readonly _api: RendererApi;
-
-  constructor(@inject('RendererApi') api: RendererApi) {
-    this._api = api;
-  }
+  constructor(@inject('RendererApi') private _api: IMeshApi) {}
 
   /**
    * Применяет wireframe-режим к сцене.

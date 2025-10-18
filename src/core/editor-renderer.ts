@@ -1,15 +1,17 @@
 // Core
-import { Renderer } from './renderer';
 import * as THREE from 'three';
-// Helpers
+import { Renderer } from './renderer';
+// Extensions
 import { OrbitWithState } from '../extensions/orbit-extension';
-import { SymmetricAxesHelper } from '../helpers/symmetric-axes-helper';
+import { SymmetricAxesHelper } from '../extensions/symmetric-axes-helper';
+import { TransformControls } from 'three/addons/controls/TransformControls.js';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Event bus
 import { EventBus } from '../events/event-bus';
 import { EventTopics } from '../events/event-topics';
-import type { Figure } from '@planara/types';
+// Types
+import { type Figure, ToolType } from '@planara/types';
 
 /**
  * Рендерер для редактора.
@@ -21,9 +23,24 @@ import type { Figure } from '@planara/types';
 export class EditorRenderer extends Renderer {
   /** Orbit-контроллер для управления камерой */
   private _orbit!: OrbitWithState;
+
+  /** Transform-контроллер для редактирования */
+  private _transform!: TransformControls;
+  private readonly _transformHelper!: THREE.Object3D;
+
+  /** Raycast для получения событий наведения/клика по модели*/
   private _raycaster!: THREE.Raycaster;
+
+  /** Курсор мыши */
   private readonly _mouse!: THREE.Vector2;
+
+  /** Были ли инициализированы обработчики событий (hover/click) */
   private _isEventListenersAdded = false;
+
+  /**
+   * Последняя модель на которую наводились,
+   * необходима для отправки только уникальных событий в event bus
+   */
   private _lastHovered: THREE.Object3D | null = null;
 
   constructor(
@@ -31,7 +48,7 @@ export class EditorRenderer extends Renderer {
     @inject('EventBus') private _bus: EventBus,
   ) {
     super(_canvas);
-    console.log('renderer');
+
     // Сетка
     const grid = new THREE.GridHelper(10, 10);
     grid.position.y = -0.001;
@@ -52,6 +69,11 @@ export class EditorRenderer extends Renderer {
 
     // Освещение
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.6));
+
+    // Transform
+    this._transform = new TransformControls(this.camera, this.renderer.domElement);
+    this._transformHelper = this._transform.getHelper();
+    this.scene.add(this._transformHelper);
   }
 
   /**
@@ -61,6 +83,7 @@ export class EditorRenderer extends Renderer {
     this._orbit.update();
   }
 
+  /** Добавление фигуры на сцену */
   public override addFigure(figure: Figure) {
     const mesh = super.addFigure(figure);
 
@@ -73,58 +96,101 @@ export class EditorRenderer extends Renderer {
     mesh.add(line);
 
     if (!this._isEventListenersAdded) {
-      this.initMouseListeners();
+      this._initMouseListeners();
     }
 
     return mesh;
   }
 
-  private initMouseListeners() {
-    document.addEventListener('mousemove', this._handleMouseMove, false);
-    document.addEventListener('click', this._handleMouseClick, false);
+  /**
+   * Смена отображения `TransformControls` в зависимости от типа инструмента.
+   * @param mode - тип инструмента для отображения `TransformControls`.
+   * @internal
+   */
+  public setTransformControlsMode(mode: ToolType) {
+    this._transform.setMode(mode);
+  }
+
+  /**
+   * Добавление `TransformControls` к объекту.
+   * @param object - объект, к которому добавляются `TransformControls`.
+   * @internal
+   */
+  public attachTransformControls(object: THREE.Object3D) {
+    this._transform.attach(object);
+  }
+
+  /**
+   * Удаление `TransformControls` с последнего выбранного объекта.
+   * @internal
+   */
+  public detachTransformControls() {
+    this._transform.detach();
+  }
+
+  /** Инициализация обработчиков событий на hover/click */
+  private _initMouseListeners() {
+    // raycasting
+    this.canvas.addEventListener('mousemove', this._handleMouseMove, false);
+    this.canvas.addEventListener('click', this._handleMouseClick, false);
+
+    // transform controls
+    this.canvas.addEventListener('pointerdown', (e) => this._transform.pointerDown(e));
+    this.canvas.addEventListener('pointermove', (e) => this._transform.pointerMove(e));
+    this.canvas.addEventListener('pointerup', (e) => this._transform.pointerUp(e));
+    this.canvas.addEventListener('pointerleave', () => this._transform.pointerHover(null));
+    this._transform.addEventListener('dragging-changed', () => {
+      this._orbit.enabled = !this._transform.dragging;
+    });
+
     this._isEventListenersAdded = true;
   }
 
+  /** Обработчик события для hover */
   private _handleMouseMove = (e: MouseEvent) => {
     this._processRaycastEvent(e, EventTopics.SelectHover, true);
   };
 
+  /** Обработчик события на click */
   private _handleMouseClick = (e: MouseEvent) => {
     this._processRaycastEvent(e, EventTopics.SelectClick, false);
   };
 
+  /** Вспомогательный метод для получения модели, которую выбрали и отправки события в event bus */
   private _processRaycastEvent(
     e: MouseEvent,
     topic: EventTopics.SelectHover | EventTopics.SelectClick,
     markHit: boolean,
   ) {
-    if (this._orbit.isInteracting) return;
+    // Если идет взаимодействие с камерой, то hover/click не отслеживается
+    if (this._orbit.isInteracting || this._transform.dragging) return;
 
+    // Получение положения курсора мыши
     const rect = this._canvas.getBoundingClientRect();
     this._mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
     this._mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
+    // Проверка на пересечение модели и курсора мыши
     this._raycaster.setFromCamera(this._mouse, this.camera);
     const intersects = this._raycaster.intersectObjects(this.meshes, false);
     const hit = intersects[0]?.object ?? null;
 
+    // Событие при наведении (hover), иначе click
     if (markHit) {
-      // Hover: шлём событие только при смене объекта
+      // Если пересечение не совпадает с последней выбранной фигурой,
+      // то отправляем новое событие в event bus
       if (hit !== this._lastHovered) {
         this.meshes.forEach((m) => (m.userData.isHit = false));
         if (hit) hit.userData.isHit = true;
 
         this._lastHovered = hit;
 
+        // Отправка события
         this._bus.emit(topic, hit ? { mesh: hit } : null);
-        console.log('[hover]:', hit ? 'hit' : 'cleared', hit?.name);
       }
     } else {
-      // Click: шлём событие всегда
+      // Отправка события
       this._bus.emit(topic, hit ? { mesh: hit } : null);
-      console.log('[click]:', hit ? 'hit' : 'cleared', hit?.name);
-
-      // Не трогаем _lastHovered здесь
     }
   }
 }

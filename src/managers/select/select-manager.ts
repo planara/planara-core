@@ -20,7 +20,7 @@ export class SelectManager implements ISelectManager {
   /** Хендлеры, которые управляют выборкой */
   private readonly _handlers: Map<SelectMode, IHandler>;
 
-  constructor(
+  public constructor(
     @inject('EventBus') private _eventBus: EventBus,
     @injectAll('ISelectHandler') handlers: ISelectHandler[],
   ) {
@@ -32,7 +32,7 @@ export class SelectManager implements ISelectManager {
     this._eventBus.on(EventTopics.SelectClick, this._onClick);
   }
 
-  manage(mode: SelectMode): void {
+  public manage(mode: SelectMode): void {
     if (mode === this._currentMode) return;
 
     // Если поменялся режим, то надо сделать откат предыдущего хендлера
@@ -53,6 +53,10 @@ export class SelectManager implements ISelectManager {
 
   /** Обработчик события клика на модель */
   private _onClick = (payload: EditorEvents[EventTopics.SelectClick]) => {
+    // Отправка события выбора модели
+    const mesh = payload?.mesh ?? null;
+    this._eventBus.emit(EventTopics.ToolSelect, { mode: this._currentMode, mesh: mesh });
+
     // Получение хендлера под нужный режим
     const handler = this._handlers.get(this._currentMode);
 
@@ -60,7 +64,13 @@ export class SelectManager implements ISelectManager {
     handler?.handle(payload, SelectEventType.Click);
   };
 
-  destroy(): void {
+  public destroy(): void {
+    // Очистка хендлеров
+    if (this._handlers) {
+      this._handlers.clear();
+    }
+
+    // Отписка от событий
     this._eventBus.off(EventTopics.SelectHover, this._onHover);
   }
 }
