@@ -13,6 +13,7 @@ export * from './hub/editor-hub';
 export * from './interfaces/manager/manager';
 export * from './interfaces/manager/display-manager';
 export * from './interfaces/manager/select-manager';
+export * from './interfaces/manager/tool-manager';
 // Event Bus
 export * from './events/event-bus';
 // Types

@@ -16,6 +16,7 @@ import { SelectEventType } from '../../types/event/select-event-type';
  * Управляет сценой через payload события рендерера.
  * Обрабатывает hover и click.
  * Меняет цвет ребер конкретной модели из payload, в случае null возвращает исходное состояние.
+ * @internal
  */
 @injectable()
 export class MeshSelectHandler implements ISelectHandler {
@@ -48,7 +49,6 @@ export class MeshSelectHandler implements ISelectHandler {
           this._setEdgesColor(this._hoveredMesh, this._defaultColor);
         }
         this._hoveredMesh = null;
-        console.log('hover out');
         return;
       }
 
@@ -64,7 +64,6 @@ export class MeshSelectHandler implements ISelectHandler {
         if (mesh !== this._selectedMesh) this._setEdgesColor(mesh, this._hoverColor);
 
         this._hoveredMesh = mesh;
-        console.log('hover in', mesh.name);
       }
     } else if (type === SelectEventType.Click) {
       if (!payload) {
@@ -72,7 +71,6 @@ export class MeshSelectHandler implements ISelectHandler {
         if (this._selectedMesh) {
           this._setEdgesColor(this._selectedMesh, this._defaultColor);
           this._selectedMesh = null;
-          console.log('click cleared');
         }
         return;
       }
