@@ -11,7 +11,8 @@ import { inject, injectable } from 'tsyringe';
 import { EventBus } from '../events/event-bus';
 import { EventTopics } from '../events/event-topics';
 // Types
-import { type Figure, ToolType } from '@planara/types';
+import { type Figure, SelectMode, ToolType } from '@planara/types';
+import { LINE_THRESHOLD, POINTS_THRESHOLD } from '../constants/threshold';
 
 /**
  * Рендерер для редактора.
@@ -29,7 +30,7 @@ export class EditorRenderer extends Renderer {
   private readonly _transformHelper!: THREE.Object3D;
 
   /** Raycast для получения событий наведения/клика по модели*/
-  private _raycaster!: THREE.Raycaster;
+  private readonly _raycaster!: THREE.Raycaster;
 
   /** Курсор мыши */
   private readonly _mouse!: THREE.Vector2;
@@ -43,7 +44,7 @@ export class EditorRenderer extends Renderer {
    */
   private _lastHovered: THREE.Object3D | null = null;
 
-  constructor(
+  public constructor(
     @inject('Canvas') private _canvas: HTMLCanvasElement,
     @inject('EventBus') private _bus: EventBus,
   ) {
@@ -70,6 +71,10 @@ export class EditorRenderer extends Renderer {
     // Освещение
     this.scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.6));
 
+    // Настройки для камеры
+    this.camera.layers.enable(0);
+    this.camera.layers.enable(1);
+
     // Transform
     this._transform = new TransformControls(this.camera, this.renderer.domElement);
     this._transformHelper = this._transform.getHelper();
@@ -87,12 +92,16 @@ export class EditorRenderer extends Renderer {
   public override addFigure(figure: Figure) {
     const mesh = super.addFigure(figure);
 
+    mesh.layers.enable(0);
+
     // внешние рёбра
     const edges = new THREE.EdgesGeometry(mesh.geometry);
     const line = new THREE.LineSegments(
       edges,
       new THREE.LineBasicMaterial({ color: 0x888888, linewidth: 1 }),
     );
+    line.layers.set(1);
+
     mesh.add(line);
 
     if (!this._isEventListenersAdded) {
@@ -126,6 +135,61 @@ export class EditorRenderer extends Renderer {
    */
   public detachTransformControls() {
     this._transform.detach();
+  }
+
+  /**
+   * Настройка режимов для `Raycaster`.
+   * @internal
+   */
+  public setRaycastMode(mode: SelectMode) {
+    const raycaster = this._raycaster;
+
+    raycaster.params.Line.threshold = 0;
+    raycaster.params.Points.threshold = 0;
+
+    switch (mode) {
+      case SelectMode.Mesh:
+      case SelectMode.Face:
+        raycaster.layers.set(0);
+        break;
+      case SelectMode.Edge:
+        raycaster.layers.set(1);
+        raycaster.params.Line.threshold = LINE_THRESHOLD;
+        break;
+      case SelectMode.Vertex:
+        raycaster.layers.set(2);
+        raycaster.params.Points.threshold = POINTS_THRESHOLD;
+        break;
+    }
+  }
+
+  public override dispose() {
+    // Очистка обработчиков событий
+    if (this._isEventListenersAdded) {
+      this.canvas.removeEventListener('mousemove', this._handleMouseMove, false);
+      this.canvas.removeEventListener('click', this._handleMouseClick, false);
+
+      this.canvas.removeEventListener('pointerdown', (e) => this._transform.pointerDown(e));
+      this.canvas.removeEventListener('pointermove', (e) => this._transform.pointerMove(e));
+      this.canvas.removeEventListener('pointerup', (e) => this._transform.pointerUp(e));
+      this.canvas.removeEventListener('pointerleave', () => this._transform.pointerHover(null));
+      this._transform.removeEventListener('dragging-changed', () => {
+        this._orbit.enabled = !this._transform.dragging;
+      });
+
+      this._isEventListenersAdded = false;
+    }
+
+    // Очистка хелперов
+    this._orbit?.dispose();
+    this._transform?.dispose();
+    if (this._transformHelper?.parent) {
+      this._transformHelper.parent.remove(this._transformHelper);
+    }
+
+    this._lastHovered = null;
+
+    super.dispose();
   }
 
   /** Инициализация обработчиков событий на hover/click */
@@ -172,25 +236,26 @@ export class EditorRenderer extends Renderer {
 
     // Проверка на пересечение модели и курсора мыши
     this._raycaster.setFromCamera(this._mouse, this.camera);
-    const intersects = this._raycaster.intersectObjects(this.meshes, false);
-    const hit = intersects[0]?.object ?? null;
+    const intersects = this._raycaster.intersectObjects(this.meshes, true);
+    const hitIntersection = intersects[0] ?? null;
+    const hitObj: THREE.Object3D | null = hitIntersection?.object ?? null;
 
     // Событие при наведении (hover), иначе click
     if (markHit) {
       // Если пересечение не совпадает с последней выбранной фигурой,
       // то отправляем новое событие в event bus
-      if (hit !== this._lastHovered) {
+      if (hitObj !== this._lastHovered) {
         this.meshes.forEach((m) => (m.userData.isHit = false));
-        if (hit) hit.userData.isHit = true;
+        if (hitObj) hitObj.userData.isHit = true;
 
-        this._lastHovered = hit;
+        this._lastHovered = hitObj;
 
         // Отправка события
-        this._bus.emit(topic, hit ? { mesh: hit } : null);
+        this._bus.emit(topic, hitIntersection ? { intersection: hitIntersection } : null);
       }
     } else {
       // Отправка события
-      this._bus.emit(topic, hit ? { mesh: hit } : null);
+      this._bus.emit(topic, hitIntersection ? { intersection: hitIntersection } : null);
     }
   }
 }

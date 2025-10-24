@@ -1,26 +1,35 @@
-// Core
-import * as THREE from 'three';
 // Types
 import type { ToolType } from '@planara/types';
 // Interfaces
 import type { ITransformHelpersApi } from '../../interfaces/api/transform-helpers-api';
 import type { IToolHandler } from '../../interfaces/handler/tool-handler';
+import type { IEditorStore } from '../../interfaces/store/editor-store';
 
 /**
  * Базовый класс для инструментов
  * @internal
  */
 export abstract class BaseToolHandler implements IToolHandler {
-  abstract readonly mode: ToolType;
+  public abstract readonly mode: ToolType;
 
-  protected constructor(protected api: ITransformHelpersApi) {}
+  protected constructor(
+    protected api: ITransformHelpersApi,
+    protected store: IEditorStore,
+  ) {}
 
   /**
    * Обновляет состояние инструмента под текущее выделение.
    */
-  handle(target: THREE.Object3D | null): void {
+  public handle(): void {
+    // Получение текущего выбранного объекта
+    const target = this.store.getSelectedObject();
+
+    // Смена режима transform controls
     this.api.setMode(this.mode);
+
+    // Если есть объект, то добавляем transform controls
     if (target) this.api.attach(target);
+    // Иначе - скрываем хелперы
     else this.api.detach();
   }
 
@@ -29,11 +38,12 @@ export abstract class BaseToolHandler implements IToolHandler {
    *
    * Вызывается менеджером перед активацией другого хендлера.
    */
-  rollback(): void {
+  public rollback(): void {
     this.api.detach();
   }
 
-  destroy(): void {
+  /** Освобождение ресурсов хендлера. */
+  public dispose(): Promise<void> | void {
     this.rollback();
   }
 }

@@ -10,9 +10,11 @@ import { ToolManager } from '../managers/tool/tool-manager';
 // Handlers
 import { WireframeHandler } from '../handlers/display/wireframe-handler';
 import { MeshSelectHandler } from '../handlers/select/mesh-select-handler';
+import { FaceSelectHandler } from '../handlers/select/face-select-handler';
 import { TranslateToolHandler } from '../handlers/tool/translate-tool-handler';
 import { ScaleToolHandler } from '../handlers/tool/scale-tool-handler';
 import { RotateToolHandler } from '../handlers/tool/rotate-tool-handler';
+import { EdgeSelectHandler } from '../handlers/select/edge-select-handler';
 // Interfaces
 import type { IDisplayManager } from '../interfaces/manager/display-manager';
 import type { IDisplayHandler } from '../interfaces/handler/display-handler';
@@ -26,6 +28,9 @@ import { RendererApi } from '../utils/renderer-api';
 import { EditorHub } from '../hub/editor-hub';
 // Event bus
 import { EventBus } from '../events/event-bus';
+// Store
+import { EditorStore } from '../store';
+import type { IEditorStore } from '../interfaces/store/editor-store';
 
 let isContainerInitialized = false;
 const container = globalContainer.createChildContainer();
@@ -46,6 +51,8 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
   // Handlers
   container.registerSingleton<IDisplayHandler>('IDisplayHandler', WireframeHandler);
   container.registerSingleton<ISelectHandler>('ISelectHandler', MeshSelectHandler);
+  container.registerSingleton<ISelectHandler>('ISelectHandler', FaceSelectHandler);
+  container.registerSingleton<ISelectHandler>('ISelectHandler', EdgeSelectHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', TranslateToolHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', ScaleToolHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', RotateToolHandler);
@@ -57,6 +64,9 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
 
   // Hub
   container.registerSingleton('EditorHub', EditorHub);
+
+  // Store
+  container.registerSingleton<IEditorStore>('IEditorStore', EditorStore);
 
   isContainerInitialized = true;
 

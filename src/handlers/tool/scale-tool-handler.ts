@@ -2,6 +2,7 @@
 import { BaseToolHandler } from './base-tool-handler';
 // Interfaces
 import type { ITransformHelpersApi } from '../../interfaces/api/transform-helpers-api';
+import type { IEditorStore } from '../../interfaces/store/editor-store';
 // Types
 import { ToolType } from '@planara/types';
 // IOC
@@ -22,7 +23,10 @@ export class ScaleToolHandler extends BaseToolHandler {
   /** Инструмент, которым управляет хендлер, нужен только менеджеру */
   public readonly mode: ToolType = ToolType.Scale;
 
-  public constructor(@inject('RendererApi') api: ITransformHelpersApi) {
-    super(api);
+  public constructor(
+    @inject('RendererApi') api: ITransformHelpersApi,
+    @inject('IEditorStore') store: IEditorStore,
+  ) {
+    super(api, store);
   }
 }

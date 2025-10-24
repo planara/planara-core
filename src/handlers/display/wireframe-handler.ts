@@ -21,7 +21,7 @@ export class WireframeHandler implements IDisplayHandler {
   /** Список wireframe-объектов для текущих мешей */
   private _wireframes: THREE.LineSegments[] = [];
 
-  constructor(@inject('RendererApi') private _api: IMeshApi) {}
+  public constructor(@inject('RendererApi') private _api: IMeshApi) {}
 
   /**
    * Применяет wireframe-режим к сцене.
@@ -89,10 +89,8 @@ export class WireframeHandler implements IDisplayHandler {
     this._wireframes = [];
   }
 
-  /**
-   * Очистка ресурсов.
-   */
-  public destroy(): void {
+  /** Освобождает ресурсы хендлера, удаляет слушатели и очищает внутренние данные. */
+  public dispose(): Promise<void> | void {
     for (const wf of this._wireframes) {
       wf.geometry.dispose();
       (wf.material as THREE.Material).dispose();
