@@ -4,6 +4,8 @@ import * as THREE from 'three';
 import type { Figure } from '@planara/types';
 // Interfaces
 import type { Disposable } from 'tsyringe';
+// Constants
+import { BASE_MATERIAL } from '../constants/figure-geometries';
 
 /**
  * Абстрактный базовый класс рендерера для работы с WebGL через OGL.
@@ -109,15 +111,8 @@ export abstract class Renderer implements Disposable {
       geometry.setAttribute('uv', new THREE.Float32BufferAttribute(figure.uv, 2));
     }
 
-    // Добавление базового материала
-    const material = new THREE.MeshStandardMaterial({
-      color: 0xbfbfbf,
-      metalness: 0.0,
-      roughness: 0.6,
-    });
-
     // Создание объекта фигуры
-    const mesh = new THREE.Mesh(geometry, material);
+    const mesh = new THREE.Mesh(geometry, BASE_MATERIAL);
 
     // Добавление на сцену
     this.scene.add(mesh);
