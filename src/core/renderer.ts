@@ -2,13 +2,15 @@
 import * as THREE from 'three';
 // Types
 import type { Figure } from '@planara/types';
+// Interfaces
+import type { Disposable } from 'tsyringe';
 
 /**
  * Абстрактный базовый класс рендерера для работы с WebGL через OGL.
  * Отвечает за инициализацию сцены, камеры и цикла рендеринга.
  * @public
  */
-export abstract class Renderer {
+export abstract class Renderer implements Disposable {
   /** Корневой объект сцены */
   protected scene!: THREE.Scene;
 
@@ -90,7 +92,7 @@ export abstract class Renderer {
   }
 
   /**
-   * Публичный метод для добавления фигуры.
+   * Добавление фигуры на сцену.
    * @param figure - Данные фигуры: position, normal, uv
    */
   public addFigure(figure: Figure): THREE.Mesh {
@@ -132,6 +134,8 @@ export abstract class Renderer {
    * @internal
    */
   public addMesh(mesh: THREE.Mesh) {
+    if (!this.scene) return;
+
     this.scene.add(mesh);
     this.meshes.push(mesh);
   }
@@ -143,6 +147,8 @@ export abstract class Renderer {
    * @internal
    */
   public removeMesh(mesh: THREE.Mesh) {
+    if (!this.scene) return;
+
     this.scene.remove(mesh);
     this.meshes = this.meshes.filter((m) => m !== mesh);
   }
@@ -157,8 +163,81 @@ export abstract class Renderer {
     return this.meshes;
   }
 
-  /** Деструктор */
-  public destroy() {
+  /**
+   * Добавляет объект в сцену и (опционально) выставляет ему слой.
+   *
+   * @param obj - Объект, который нужно добавить в сцену.
+   * @param layer - (Опц.) Номер слоя, который следует установить объекту перед добавлением.
+   *
+   * @remarks
+   * Если рендерер уже диспоузнут (scene отсутствует), метод тихо завершится.
+   * Слой задаётся через `obj.layers.set(layer)`, после чего объект добавляется в `this.scene`.
+   *
+   * @example
+   * // Добавить оверлей на слой подсветок:
+   * add(overlayLine, OVERLAY_LAYER);
+   *
+   * @internal
+   */
+  public addObject(obj: THREE.Object3D, layer?: number): void {
+    if (!this.scene) return;
+
+    if (typeof layer === 'number') {
+      obj.layers.set(layer);
+    }
+    this.scene.add(obj);
+  }
+
+  /**
+   * Удаляет объект из сцены (или из его родителя, если он есть).
+   *
+   * @param obj - Объект, который необходимо удалить.
+   *
+   * @remarks
+   * Если у объекта есть `parent`, он будет удалён из родителя. Иначе — метод попытается
+   * удалить его напрямую из `this.scene`. В рамках данного API метод не отвечает за
+   * освобождение GPU-ресурсов; освобождайте геометрию/материалы отдельно при необходимости.
+   *
+   * @example
+   * // Снять оверлей со сцены:
+   * removeObject(overlayLine);
+   *
+   * @internal
+   */
+  public removeObject(obj: THREE.Object3D): void {
+    if (!this.scene) return;
+
+    // если есть родитель — убираем из него, иначе пробуем прямо из сцены
+    if (obj.parent) {
+      obj.parent.remove(obj);
+    } else {
+      this.scene.remove(obj);
+    }
+  }
+
+  /**
+   * Включает указанный слой у активной камеры.
+   *
+   * @param layer - Номер слоя, который требуется сделать видимым для камеры.
+   *
+   * @remarks
+   * Полезно для показа служебных оверлеев (например, подсветки) на отдельном слое.
+   * Метод не изменяет слои Raycaster — ими должен управлять другой слой API (например, IRaycastAPI).
+   *
+   * @example
+   * // Убедиться, что камера видит слой оверлеев:
+   * enableCameraLayer(OVERLAY_LAYER);
+   *
+   * @internal
+   */
+  public enableCameraLayer(layer: number): void {
+    if (!this.camera) return;
+
+    this.camera.layers.enable(layer);
+  }
+
+  /** Освобождает ресурсы рендерера, очищает внутренние данные. */
+  public dispose(): Promise<void> | void {
     if (this.meshes) {
       this.meshes.length = 0;
       this.meshes = [];
@@ -167,7 +246,7 @@ export abstract class Renderer {
     this.scene = null!;
     this.camera = null!;
 
-    this.renderer = null!;
+    this.renderer?.dispose();
 
     this.canvas = null!;
   }

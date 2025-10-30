@@ -4,10 +4,10 @@
  * @public
  */
 export enum EventTopics {
-  /** Событие наведения на объект (hover). Payload: mesh: Mesh | null */
+  /** Событие наведения на объект (hover). Payload: intersection: Intersection | null */
   SelectHover = 'select.hover',
 
-  /** Событие клика по объекту. Payload: mesh: Mesh | null */
+  /** Событие клика по объекту. Payload: intersection: Intersection | null */
   SelectClick = 'select.click',
 
   /** Событие выбора объекта для редактирования. Payload: mode: SelectMode, object: THREE.Object3D | null */

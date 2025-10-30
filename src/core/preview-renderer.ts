@@ -12,7 +12,7 @@ export class PreviewRenderer extends Renderer {
   /** Orbit-контроллер для управления камерой */
   private _orbit!: OrbitControls;
 
-  constructor(canvas: HTMLCanvasElement) {
+  public constructor(canvas: HTMLCanvasElement) {
     super(canvas);
 
     // Камера

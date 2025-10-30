@@ -11,11 +11,11 @@ import type { SelectMode } from '@planara/types';
  * @public
  */
 export type EditorEvents = {
-  /** Событие наведения на объект (hover). Payload: объект с mesh или null */
-  [EventTopics.SelectHover]: { mesh: THREE.Object3D } | null;
+  /** Событие наведения на объект (hover). Payload: объект с пересечениями или null */
+  [EventTopics.SelectHover]: { intersection: THREE.Intersection } | null;
 
-  /** Событие клика по объекту. Payload: объект с mesh или null */
-  [EventTopics.SelectClick]: { mesh: THREE.Object3D } | null;
+  /** Событие клика по объекту. Payload: объект с пересечениями или null */
+  [EventTopics.SelectClick]: { intersection: THREE.Intersection } | null;
 
   /** Событие выбора объекта для редактирования. Payload: выбранный режим выборки */
   [EventTopics.ToolSelect]: { mode: SelectMode; mesh: THREE.Object3D | null };

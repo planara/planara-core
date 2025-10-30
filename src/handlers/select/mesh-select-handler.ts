@@ -1,15 +1,19 @@
 // Core
 import * as THREE from 'three';
 // IOC
-import { injectable } from 'tsyringe';
+import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
+import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { IRaycastAPI } from '../../interfaces/api/raycast-api';
 // Types
 import { SelectMode } from '@planara/types';
 // Events
 import type { EditorEvents } from '../../events/editor-events';
 import { EventTopics } from '../../events/event-topics';
 import { SelectEventType } from '../../types/event/select-event-type';
+// Constants
+import { HOVER_COLOR, SELECT_COLOR } from '../../constants/colors';
 
 /**
  * Хендлер для выборки моделей.
@@ -29,19 +33,24 @@ export class MeshSelectHandler implements ISelectHandler {
   private _selectedMesh: THREE.Mesh | null = null;
 
   // Цвета, необходимые для переключения
-  /** Цвет граней для фигуры, на которую навелись */
-  private readonly _hoverColor = 0xffff00;
-  /** Цвет граней для выделенной фигуры */
-  private readonly _selectColor = 0xffaa00;
-  /** Изначальный цвет граней у модели, перед наложением эффектов*/
+  /** Цвет ребер для фигуры, на которую навелись */
+  private readonly _hoverColor = HOVER_COLOR;
+  /** Цвет ребер для выделенной фигуры */
+  private readonly _selectColor = SELECT_COLOR;
+  /** Изначальный цвет ребер у модели, перед наложением эффектов*/
   private readonly _defaultColor = 0x222222;
 
-  constructor() {}
+  public constructor(
+    @inject('RendererApi') private _api: IRaycastAPI,
+    @inject('IEditorStore') private _store: IEditorStore,
+  ) {}
 
-  handle(
+  public handle(
     payload: EditorEvents[EventTopics.SelectHover] | EditorEvents[EventTopics.SelectClick],
     type: SelectEventType,
   ): void {
+    this._api.setRaycastMode(this.mode);
+    // Событие hover
     if (type === SelectEventType.Hover) {
       if (!payload) {
         // Мышь убрана с модели
@@ -52,53 +61,59 @@ export class MeshSelectHandler implements ISelectHandler {
         return;
       }
 
-      const { mesh } = payload as { mesh: THREE.Mesh };
+      const mesh = payload.intersection.object as THREE.Mesh;
 
       if (this._hoveredMesh !== mesh) {
-        // вернуть цвет предыдущего hover, если это не выбранный mesh
+        // Вернуть цвет предыдущего hover, если это не выбранный mesh
         if (this._hoveredMesh && this._hoveredMesh !== this._selectedMesh) {
           this._setEdgesColor(this._hoveredMesh, this._defaultColor);
         }
 
-        // подсветка нового hover (если это не выбранный)
+        // Подсветка нового hover (если это не выбранный)
         if (mesh !== this._selectedMesh) this._setEdgesColor(mesh, this._hoverColor);
 
         this._hoveredMesh = mesh;
       }
-    } else if (type === SelectEventType.Click) {
+    }
+
+    // Событие click
+    if (type === SelectEventType.Click) {
       if (!payload) {
-        // сброс выделения на клик в пустом месте
+        // Сброс выделения на клик в пустом месте
         if (this._selectedMesh) {
           this._setEdgesColor(this._selectedMesh, this._defaultColor);
           this._selectedMesh = null;
+          this._store.setSelectedObject(null);
         }
         return;
       }
 
-      const { mesh } = payload as { mesh: THREE.Mesh };
+      const mesh = payload.intersection.object as THREE.Mesh;
 
-      // сброс цвета предыдущего selected
+      // Сброс цвета предыдущего selected
       if (this._selectedMesh && this._selectedMesh !== mesh) {
         this._setEdgesColor(this._selectedMesh, this._defaultColor);
       }
 
-      // подсветка нового selected
+      // Подсветка нового selected
       this._setEdgesColor(mesh, this._selectColor);
+      // Сохранение выбранного объекта
       this._selectedMesh = mesh;
+      this._store.setSelectedObject(mesh);
     }
   }
 
-  rollback(): void {
+  public rollback(): void {
     // Возвращение исходного цвета для моделей
     if (this._hoveredMesh) this._setEdgesColor(this._hoveredMesh, this._defaultColor);
     if (this._selectedMesh) this._setEdgesColor(this._selectedMesh, this._defaultColor);
 
     // Очистка записей о моделях
-    this._hoveredMesh = null;
-    this._selectedMesh = null;
+    this._hoveredMesh = this._selectedMesh = null;
   }
 
-  destroy(): void {
+  /** Освобождает ресурсы хендлера, удаляет слушатели и очищает внутренние данные. */
+  public dispose(): Promise<void> | void {
     this.rollback();
   }
 

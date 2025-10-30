@@ -1,5 +1,5 @@
 // IOC
-import { inject, injectable } from 'tsyringe';
+import { type Disposable, inject, injectable } from 'tsyringe';
 // Types
 import { type DisplayMode, type Figure, SelectMode, ToolType } from '@planara/types';
 // Interfaces
@@ -13,8 +13,8 @@ import type { IToolManager } from '../interfaces/manager/tool-manager';
  * @public
  */
 @injectable()
-export class EditorHub {
-  constructor(
+export class EditorHub implements Disposable {
+  public constructor(
     @inject('IDisplayManager') private _displayManager: IDisplayManager,
     @inject('ISelectManager') private _selectManager: ISelectManager,
     @inject('IToolManager') private _toolManager: IToolManager,
@@ -24,33 +24,33 @@ export class EditorHub {
     this.setToolMode(ToolType.Translate);
   }
 
-  setDisplayMode(mode: DisplayMode) {
+  public setDisplayMode(mode: DisplayMode) {
     this._displayManager.manage(mode);
   }
 
-  setSelectMode(mode: SelectMode) {
+  public setSelectMode(mode: SelectMode) {
     this._selectManager.manage(mode);
   }
 
-  setToolMode(mode: ToolType) {
+  public setToolMode(mode: ToolType) {
     this._toolManager.manage(mode);
   }
 
-  resizeRenderer() {
+  public resizeRenderer() {
     this._renderer.resize();
   }
 
-  updateRenderer() {
+  public updateRenderer() {
     this._renderer.loop();
   }
 
-  addFigure(figure: Figure) {
+  public addFigure(figure: Figure) {
     this._renderer.addFigure(figure);
   }
 
-  destroy() {
-    this._displayManager.destroy();
-    this._selectManager.destroy();
-    this._renderer.destroy();
+  public dispose(): Promise<void> | void {
+    this._displayManager.dispose();
+    this._selectManager.dispose();
+    this._renderer.dispose();
   }
 }

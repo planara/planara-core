@@ -1,11 +1,12 @@
 // IOC
-import { injectable, injectAll } from 'tsyringe';
+import { inject, injectable, injectAll } from 'tsyringe';
 // Interfaces
 import type { IDisplayManager } from '../../interfaces/manager/display-manager';
 import type { IHandler } from '../../interfaces/handler/handler';
+import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
+import type { IEditorStore } from '../../interfaces/store/editor-store';
 // Types
 import { DisplayMode } from '@planara/types';
-import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
 
 /**
  * Менеджер для управления отображением
@@ -19,7 +20,10 @@ export class DisplayManager implements IDisplayManager {
   /** Хендлеры, которые управляют отображением */
   private readonly _handlers: Map<DisplayMode, IHandler>;
 
-  public constructor(@injectAll('IDisplayHandler') handlers: IDisplayHandler[]) {
+  public constructor(
+    @injectAll('IDisplayHandler') handlers: IDisplayHandler[],
+    @inject('IEditorStore') private _store: IEditorStore,
+  ) {
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));
   }
 
@@ -35,11 +39,13 @@ export class DisplayManager implements IDisplayManager {
       this._handlers.get(mode)?.handle();
     }
 
+    // Сохранение текущего режима
     this._currentMode = mode;
+    this._store.setDisplayMode(this._currentMode);
   }
 
-  /** Освобождение ресурсов */
-  public destroy(): void {
+  /** Освобождает ресурсы менеджера. */
+  public dispose(): Promise<void> | void {
     // Очистка хендлеров
     if (this._handlers) {
       this._handlers.clear();
@@ -47,5 +53,6 @@ export class DisplayManager implements IDisplayManager {
 
     // Возвращение дефолтного значения
     this._currentMode = DisplayMode.Plane;
+    this._store.setDisplayMode(this._currentMode);
   }
 }
