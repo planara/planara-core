@@ -109,8 +109,9 @@ export class EdgeSelectHandler implements ISelectHandler {
       if (seg < 0) return;
 
       this._writeWorldSegment(this._selectLine, lines, seg);
-      this._centerLineOnSegment(this._selectLine, lines, seg);
+      this._centerAndOrientLineOnSegment(this._selectLine, lines, seg);
       this._selectLine.visible = true;
+
       // Сохранение выбранного объекта в store
       this._store.setSelectedObject(this._selectLine);
       this._selected = { lines, seg };
@@ -197,13 +198,13 @@ export class EdgeSelectHandler implements ISelectHandler {
     return !!a && !!b && a.lines === b.lines && a.seg === b.seg;
   }
 
-  /** Центрует сам THREE.Line в середине сегмента. Оси гизмо остаются мировыми. */
-  private _centerLineOnSegment(line: THREE.Line, lines: THREE.LineSegments, seg: number) {
+  /** Центрует `THREE.Line` на сегменте и ориентирует её вдоль ребра */
+  private _centerAndOrientLineOnSegment(line: THREE.Line, lines: THREE.LineSegments, seg: number) {
     const src = lines.geometry.getAttribute('position') as THREE.BufferAttribute;
     const i0 = seg * 2,
       i1 = i0 + 1;
 
-    // мировые концы ребра
+    // Концы ребра
     const A = new THREE.Vector3(src.getX(i0), src.getY(i0), src.getZ(i0)).applyMatrix4(
       lines.matrixWorld,
     );
@@ -211,10 +212,12 @@ export class EdgeSelectHandler implements ISelectHandler {
       lines.matrixWorld,
     );
 
-    const mid = new THREE.Vector3().addVectors(A, B).multiplyScalar(0.5);
-    const len = A.distanceTo(B);
-    if (len === 0) return;
+    const dir = new THREE.Vector3().subVectors(B, A);
+    const len = dir.length();
+    if (!isFinite(len) || len === 0) return;
 
+    // позиция в середину
+    const mid = new THREE.Vector3().addVectors(A, B).multiplyScalar(0.5);
     line.position.copy(mid);
 
     const g = line.geometry as THREE.BufferGeometry;
@@ -227,8 +230,10 @@ export class EdgeSelectHandler implements ISelectHandler {
     dst.setXYZ(1, len / 2, 0, 0);
     dst.needsUpdate = true;
 
-    // оси не крутим (оставляем мировые)
-    line.quaternion.identity();
+    dir.normalize();
+    const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(1, 0, 0), dir);
+    line.quaternion.copy(q);
+
     line.updateMatrixWorld(true);
   }
 }
