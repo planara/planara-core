@@ -37,8 +37,8 @@ export class MeshSelectHandler implements ISelectHandler {
   private readonly _hoverColor = HOVER_COLOR;
   /** Цвет ребер для выделенной фигуры */
   private readonly _selectColor = SELECT_COLOR;
-  /** Изначальный цвет ребер у модели, перед наложением эффектов*/
-  private readonly _defaultColor = 0x222222;
+  /** Исходные цвета материалов линий для отката */
+  private readonly _origLineColors = new WeakMap<THREE.LineSegments, THREE.Color>();
 
   public constructor(
     @inject('RendererApi') private _api: IRaycastAPI,
@@ -55,7 +55,7 @@ export class MeshSelectHandler implements ISelectHandler {
       if (!payload) {
         // Мышь убрана с модели
         if (this._hoveredMesh && this._hoveredMesh !== this._selectedMesh) {
-          this._setEdgesColor(this._hoveredMesh, this._defaultColor);
+          this._restoreEdgesColor(this._hoveredMesh);
         }
         this._hoveredMesh = null;
         return;
@@ -66,11 +66,11 @@ export class MeshSelectHandler implements ISelectHandler {
       if (this._hoveredMesh !== mesh) {
         // Вернуть цвет предыдущего hover, если это не выбранный mesh
         if (this._hoveredMesh && this._hoveredMesh !== this._selectedMesh) {
-          this._setEdgesColor(this._hoveredMesh, this._defaultColor);
+          this._restoreEdgesColor(this._hoveredMesh);
         }
 
         // Подсветка нового hover (если это не выбранный)
-        if (mesh !== this._selectedMesh) this._setEdgesColor(mesh, this._hoverColor);
+        if (mesh !== this._selectedMesh) this._paintEdges(mesh, this._hoverColor);
 
         this._hoveredMesh = mesh;
       }
@@ -81,7 +81,7 @@ export class MeshSelectHandler implements ISelectHandler {
       if (!payload) {
         // Сброс выделения на клик в пустом месте
         if (this._selectedMesh) {
-          this._setEdgesColor(this._selectedMesh, this._defaultColor);
+          this._restoreEdgesColor(this._selectedMesh);
           this._selectedMesh = null;
           this._store.setSelectedObject(null);
         }
@@ -92,11 +92,11 @@ export class MeshSelectHandler implements ISelectHandler {
 
       // Сброс цвета предыдущего selected
       if (this._selectedMesh && this._selectedMesh !== mesh) {
-        this._setEdgesColor(this._selectedMesh, this._defaultColor);
+        this._restoreEdgesColor(this._selectedMesh);
       }
 
       // Подсветка нового selected
-      this._setEdgesColor(mesh, this._selectColor);
+      this._paintEdges(mesh, this._selectColor);
       // Сохранение выбранного объекта
       this._selectedMesh = mesh;
       this._store.setSelectedObject(mesh);
@@ -105,8 +105,8 @@ export class MeshSelectHandler implements ISelectHandler {
 
   public rollback(): void {
     // Возвращение исходного цвета для моделей
-    if (this._hoveredMesh) this._setEdgesColor(this._hoveredMesh, this._defaultColor);
-    if (this._selectedMesh) this._setEdgesColor(this._selectedMesh, this._defaultColor);
+    if (this._hoveredMesh) this._restoreEdgesColor(this._hoveredMesh);
+    if (this._selectedMesh) this._restoreEdgesColor(this._selectedMesh);
 
     // Очистка записей о моделях
     this._hoveredMesh = this._selectedMesh = null;
@@ -117,12 +117,38 @@ export class MeshSelectHandler implements ISelectHandler {
     this.rollback();
   }
 
-  /** вспомогательный метод для изменения цвета ребер меша */
-  private _setEdgesColor(mesh: THREE.Mesh, color: number) {
+  /**
+   * Перекрасить рёбра меша и запомнить оригинальный цвет (один раз на LineSegments).
+   */
+  private _paintEdges(mesh: THREE.Mesh, color: number) {
     mesh.children.forEach((child) => {
-      if ((child as THREE.LineSegments).type === 'LineSegments') {
-        const line = child as THREE.LineSegments;
-        (line.material as THREE.LineBasicMaterial).color.setHex(color);
+      const line = child as THREE.LineSegments;
+      if ((line as any).isLineSegments && line.material) {
+        const lbm = line.material as THREE.LineBasicMaterial;
+        if (!this._origLineColors.has(line)) {
+          // сохранить исходный цвет материала линии
+          this._origLineColors.set(line, lbm.color.clone());
+        }
+        lbm.color.setHex(color);
+        lbm.needsUpdate = true;
+      }
+    });
+  }
+
+  /**
+   * Восстановить исходный цвет рёбер меша из WeakMap.
+   * Если исходный цвет не сохранён (на всякий случай) — ничего не меняем.
+   */
+  private _restoreEdgesColor(mesh: THREE.Mesh) {
+    mesh.children.forEach((child) => {
+      const line = child as THREE.LineSegments;
+      if ((line as any).isLineSegments && line.material) {
+        const orig = this._origLineColors.get(line);
+        if (orig) {
+          const lbm = line.material as THREE.LineBasicMaterial;
+          lbm.color.copy(orig);
+          lbm.needsUpdate = true;
+        }
       }
     });
   }

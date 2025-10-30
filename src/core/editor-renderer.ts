@@ -79,6 +79,10 @@ export class EditorRenderer extends Renderer {
     this._transform = new TransformControls(this.camera, this.renderer.domElement);
     this._transformHelper = this._transform.getHelper();
     this.scene.add(this._transformHelper);
+
+    if (!this._isEventListenersAdded) {
+      this._initMouseListeners();
+    }
   }
 
   /**
@@ -103,10 +107,6 @@ export class EditorRenderer extends Renderer {
     line.layers.set(1);
 
     mesh.add(line);
-
-    if (!this._isEventListenersAdded) {
-      this._initMouseListeners();
-    }
 
     return mesh;
   }

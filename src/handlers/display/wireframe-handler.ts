@@ -15,86 +15,90 @@ import type { IMeshApi } from '../../interfaces/api/mesh-api';
  */
 @injectable()
 export class WireframeHandler implements IDisplayHandler {
-  /** Режим отображения */
+  /** Режим отображения. */
   public readonly mode: DisplayMode = DisplayMode.Wireframe;
 
-  /** Список wireframe-объектов для текущих мешей */
-  private _wireframes: THREE.LineSegments[] = [];
+  /** Сохраняем предыдущие значения wireframe для отката. */
+  private _prevWireframe = new Map<THREE.Material, boolean>();
+
+  /** Сохраняем исходные цвета материалов для отката */
+  private _prevColorMesh = new Map<THREE.Material, THREE.Color>();
+  private _prevColorLines = new Map<THREE.LineBasicMaterial, THREE.Color>();
+
+  /** Цвет ребер для wireframe-режима. */
+  private _wireColor = new THREE.Color(0x00ffff);
 
   public constructor(@inject('RendererApi') private _api: IMeshApi) {}
 
-  /**
-   * Применяет wireframe-режим к сцене.
-   */
+  /** Применяет wireframe-режим к сцене. */
   public handle(): void {
     const meshes = this._api.getMeshes();
 
-    // Если уже в wireframe — ничего не делаем
-    if (this._wireframes.length > 0) return;
+    for (const mesh of meshes) {
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      for (const m of mats) this._enableWireframeOnMaterial(m);
 
-    // Создаем wireframe для каждого меша
-    this._wireframes = meshes.map((mesh) => {
-      // Создаём геометрию рёбер поверх исходной
-      const geo = new THREE.WireframeGeometry(mesh.geometry);
+      mesh.traverse((obj) => {
+        if ((obj as any).isLineSegments) {
+          const line = obj as THREE.LineSegments;
 
-      // Материал для отображения wireframe
-      const mat = new THREE.LineBasicMaterial({
-        color: 0x00ffff, // бирюзовый, как в Blender
-        linewidth: 1,
+          if (!this._prevColorLines.has(line.material as THREE.LineBasicMaterial)) {
+            const lbm = line.material as THREE.LineBasicMaterial;
+            this._prevColorLines.set(lbm, lbm.color.clone());
+          }
+
+          const mat = line.material as THREE.LineBasicMaterial;
+          mat.color.copy(this._wireColor);
+          mat.needsUpdate = true;
+        }
       });
-
-      // Создаём LineSegments для отображения рёбер
-      const line = new THREE.LineSegments(geo, mat);
-
-      // Совмещаем позицию, вращение и масштаб с исходным мешем
-      line.position.copy(mesh.position);
-      line.rotation.copy(mesh.rotation);
-      line.scale.copy(mesh.scale);
-
-      // Добавляем линию как дочерний элемент меша
-      // — чтобы рёбра двигались и вращались вместе с ним
-      mesh.add(line);
-
-      return line;
-    });
-
-    // Просто скрываем оригинальную геометрию, но меши оставляем в сцене
-    // (так как линии теперь внутри мешей)
-    meshes.forEach((mesh) => {
-      const material = mesh.material as THREE.Material;
-      material.visible = false;
-    });
+    }
   }
 
-  /**
-   * Отключает wireframe-режим и возвращает оригинальные меши.
-   */
+  /** Отключает wireframe-режим и возвращает оригинальные меши. */
   public rollback(): void {
-    const meshes = this._api.getMeshes();
-
-    // Убираем линии из мешей
-    for (const mesh of meshes) {
-      const wire = this._wireframes.find((wf) => wf.parent === mesh);
-      if (wire) {
-        mesh.remove(wire);
-        wire.geometry.dispose();
-        (wire.material as THREE.Material).dispose();
-      }
-
-      // Возвращаем видимость мешей
-      const material = mesh.material as THREE.Material;
-      material.visible = true;
+    // Mesh-материалы: отключение wireframe-режима и возвращение цвета
+    for (const [mat, prev] of this._prevWireframe) {
+      if ('wireframe' in (mat as any)) (mat as any).wireframe = prev;
+      (mat as THREE.Material).needsUpdate = true;
     }
 
-    this._wireframes = [];
+    this._prevWireframe.clear();
+
+    for (const [mat, color] of this._prevColorMesh) {
+      const anyMat = mat as any;
+      if (anyMat.color?.isColor) anyMat.color.copy(color);
+    }
+
+    this._prevColorMesh.clear();
+
+    // LineSegments: возвращение исходного цвета ребер
+    for (const [lbm, color] of this._prevColorLines) {
+      lbm.color.copy(color);
+    }
+    this._prevColorLines.clear();
   }
 
   /** Освобождает ресурсы хендлера, удаляет слушатели и очищает внутренние данные. */
   public dispose(): Promise<void> | void {
-    for (const wf of this._wireframes) {
-      wf.geometry.dispose();
-      (wf.material as THREE.Material).dispose();
+    this.rollback();
+  }
+
+  /** Изменить цвет, который будет применяться в режиме wireframe. */
+  private _enableWireframeOnMaterial(mat: THREE.Material): void {
+    const anyMat = mat as any;
+
+    // Wireframe-флаг
+    if ('wireframe' in anyMat && !this._prevWireframe.has(mat)) {
+      this._prevWireframe.set(mat, Boolean(anyMat.wireframe));
+      anyMat.wireframe = true;
+      mat.needsUpdate = true;
     }
-    this._wireframes = [];
+
+    // Цвет материала меша
+    if (anyMat.color?.isColor) {
+      if (!this._prevColorMesh.has(mat)) this._prevColorMesh.set(mat, anyMat.color.clone());
+      anyMat.color.copy(this._wireColor);
+    }
   }
 }
