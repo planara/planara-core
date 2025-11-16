@@ -2,8 +2,7 @@
 import * as THREE from 'three';
 import { Renderer } from './renderer';
 // Extensions
-import { OrbitWithState } from '../extensions/orbit-extension';
-import { SymmetricAxesHelper } from '../extensions/symmetric-axes-helper';
+import { OrbitWithState, SymmetricAxesHelper } from '@planara/three';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 // IOC
 import { inject, injectable } from 'tsyringe';
