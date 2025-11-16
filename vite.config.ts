@@ -8,24 +8,41 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 export default defineConfig({
-    plugins: [
-        tsconfigPaths(),
-        dts({ insertTypesEntry: true })
-    ],
-    build: {
-        lib: {
-            entry: resolve(__dirname, 'src/index.ts'),
-            name: 'PlanaraCore',
-            fileName: (format) => `index.${format}.js`,
-            formats: ['es', 'cjs', 'umd']
+  plugins: [
+    tsconfigPaths(),
+    dts({
+      insertTypesEntry: true,
+      tsconfigPath: resolve(__dirname, 'tsconfig.json'),
+    }),
+  ],
+  build: {
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'PlanaraCore',
+      fileName: (format) => `index.${format}.js`,
+      formats: ['es', 'cjs', 'umd'],
+    },
+    rollupOptions: {
+      external: [
+        'three',
+        'mobx',
+        'events',
+        'reflect-metadata',
+        'tsyringe',
+        '@planara/three',
+        '@planara/types',
+      ],
+      output: {
+        globals: {
+          three: 'THREE',
+          mobx: 'mobx',
+          events: 'events',
+          'reflect-metadata': 'Reflect',
+          tsyringe: 'tsyringe',
+          '@planara/three': 'PlanaraThree',
+          '@planara/types': 'PlanaraTypes',
         },
-        rollupOptions: {
-            external: ['ogl'],
-            output: {
-                globals: {
-                    ogl: 'OGL'
-                }
-            }
-        }
-    }
+      },
+    },
+  },
 });

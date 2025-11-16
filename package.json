@@ -54,7 +54,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
-    "@planara/three": "^1.0.0",
+    "@planara/three": "^1.0.1",
     "@planara/types": "^1.7.2",
     "events": "^3.3.0",
     "mobx": "^6.15.0",
