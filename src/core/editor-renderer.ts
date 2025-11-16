@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { Renderer } from './renderer';
 // Extensions
-import { OrbitWithState, SymmetricAxesHelper } from '@planara/three';
+import { OrbitWithState, SymmetricAxesHelper, CameraAxesGizmo } from '@planara/three';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 // IOC
 import { inject, injectable } from 'tsyringe';
@@ -43,6 +43,9 @@ export class EditorRenderer extends Renderer {
    */
   private _lastHovered: THREE.Object3D | null = null;
 
+  /** Gizmo для управления отображением perspective camera */
+  private _cameraGizmo!: CameraAxesGizmo;
+
   public constructor(
     @inject('Canvas') private _canvas: HTMLCanvasElement,
     @inject('EventBus') private _bus: EventBus,
@@ -62,6 +65,12 @@ export class EditorRenderer extends Renderer {
     this._orbit = new OrbitWithState(this.camera, this.renderer.domElement);
     this._orbit.enableDamping = true;
     this._orbit.dampingFactor = 0.05;
+
+    // Gizmo
+    this._cameraGizmo = new CameraAxesGizmo(this.renderer, this.camera, {
+      size: 96, // Размер квадрата
+      margin: 36, // Отступы по сторонам (снизу и справа)
+    });
 
     // Raycasting
     this._raycaster = new THREE.Raycaster();
@@ -189,6 +198,12 @@ export class EditorRenderer extends Renderer {
     this._lastHovered = null;
 
     super.dispose();
+  }
+
+  protected override render() {
+    super.render();
+
+    this._cameraGizmo.render(this.canvas.width, this.canvas.height);
   }
 
   /** Инициализация обработчиков событий на hover/click */
