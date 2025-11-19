@@ -2,8 +2,12 @@
 import * as THREE from 'three';
 import { Renderer } from './renderer';
 // Extensions
-import { OrbitWithState, SymmetricAxesHelper, CameraAxesGizmo } from '@planara/three';
-import { TransformControls } from 'three/addons/controls/TransformControls.js';
+import {
+  OrbitWithState,
+  SymmetricAxesHelper,
+  CameraAxesGizmo,
+  ModelingTransformControls,
+} from '@planara/three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Event bus
@@ -25,7 +29,7 @@ export class EditorRenderer extends Renderer {
   private _orbit!: OrbitWithState;
 
   /** Transform-контроллер для редактирования */
-  private _transform!: TransformControls;
+  private _transform!: ModelingTransformControls;
   private readonly _transformHelper!: THREE.Object3D;
 
   /** Raycast для получения событий наведения/клика по модели*/
@@ -84,7 +88,7 @@ export class EditorRenderer extends Renderer {
     this.camera.layers.enable(1);
 
     // Transform
-    this._transform = new TransformControls(this.camera, this.renderer.domElement);
+    this._transform = new ModelingTransformControls(this.camera, this.renderer.domElement);
     this._transformHelper = this._transform.getHelper();
     this.scene.add(this._transformHelper);
 
