@@ -1,6 +1,6 @@
 {
   "name": "@planara/core",
-  "version": "2.4.0",
+  "version": "2.5.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -37,6 +37,10 @@
   "author": "a1unade",
   "license": "MIT",
   "description": "Core rendering library for Planara",
+  "peerDependencies": {
+    "@types/three": "^0.181.0",
+    "three": "^0.181.1"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@microsoft/api-extractor": "^7.53.1",
@@ -55,7 +59,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "dependencies": {
-    "@planara/three": "^1.1.0",
+    "@planara/three": "^1.2.0",
     "@planara/types": "^1.7.2",
     "events": "^3.3.0",
     "mobx": "^6.15.0",
