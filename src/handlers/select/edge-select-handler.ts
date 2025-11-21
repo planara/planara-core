@@ -15,6 +15,8 @@ import { SelectEventType } from '../../types/event/select-event-type';
 // Constants
 import { HOVER_COLOR, SELECT_COLOR } from '../../constants/colors';
 import { OVERLAY_LAYER } from '../../constants/layers';
+// Helpers
+import { findParentMesh } from '../../utils/helpers';
 
 /**
  * Хендлер для выборки ребер.
@@ -251,20 +253,10 @@ export class EdgeSelectHandler implements ISelectHandler {
     line.updateMatrixWorld(true);
   }
 
-  /** Поиск родителя ребер (сама фигура) */
-  private _findParentMesh(obj: THREE.Object3D | null): THREE.Mesh | null {
-    let cur: THREE.Object3D | null = obj;
-    while (cur) {
-      if ((cur as any).isMesh) return cur as THREE.Mesh;
-      cur = cur.parent;
-    }
-    return null;
-  }
-
   /** Запись метаданных выбранного ребра для использования инструментов */
   private _prepareEdgeMetadata(lines: THREE.LineSegments, seg: number) {
     // Поиск исходной фигуры по родителям
-    const mesh = this._findParentMesh(lines);
+    const mesh = findParentMesh(lines);
     if (!mesh) return;
 
     // Поиск мировых точек A и B по LineSegments

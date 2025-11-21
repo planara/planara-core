@@ -16,6 +16,8 @@ import { EventTopics } from '../events/event-topics';
 // Types
 import { type Figure, SelectMode, ToolType } from '@planara/types';
 import { LINE_THRESHOLD, POINTS_THRESHOLD } from '../constants/threshold';
+import { MESH_LAYER } from '../constants/layers';
+import { makeLineSegments, makeVertexPoints } from '../utils/helpers';
 
 /**
  * Рендерер для редактора.
@@ -108,17 +110,14 @@ export class EditorRenderer extends Renderer {
   public override addFigure(figure: Figure) {
     const mesh = super.addFigure(figure);
 
-    mesh.layers.enable(0);
+    mesh.layers.enable(MESH_LAYER);
 
     // внешние рёбра
-    const edges = new THREE.EdgesGeometry(mesh.geometry);
-    const line = new THREE.LineSegments(
-      edges,
-      new THREE.LineBasicMaterial({ color: 0x888888, linewidth: 1 }),
-    );
-    line.layers.set(1);
-
+    const line = makeLineSegments(mesh.geometry);
     mesh.add(line);
+
+    const points = makeVertexPoints(mesh.geometry as THREE.BufferGeometry);
+    mesh.add(points);
 
     return mesh;
   }

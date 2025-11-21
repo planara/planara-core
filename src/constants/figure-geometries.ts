@@ -28,3 +28,6 @@ export const BASE_MATERIAL = new THREE.MeshStandardMaterial({
   metalness: 0.0,
   roughness: 0.6,
 });
+
+/** Базовый размер вершины. */
+export const BASE_POINT_SIZE = 8;

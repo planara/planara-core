@@ -12,6 +12,7 @@ import { SceneManager } from '../managers/scene/scene-manager';
 import { WireframeHandler } from '../handlers/display/wireframe-handler';
 import { MeshSelectHandler } from '../handlers/select/mesh-select-handler';
 import { FaceSelectHandler } from '../handlers/select/face-select-handler';
+import { VertexSelectHandler } from '../handlers/select/vertex-select-handler';
 import { TranslateToolHandler } from '../handlers/tool/translate-tool-handler';
 import { ScaleToolHandler } from '../handlers/tool/scale-tool-handler';
 import { RotateToolHandler } from '../handlers/tool/rotate-tool-handler';
@@ -58,6 +59,7 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
   container.registerSingleton<ISelectHandler>('ISelectHandler', MeshSelectHandler);
   container.registerSingleton<ISelectHandler>('ISelectHandler', FaceSelectHandler);
   container.registerSingleton<ISelectHandler>('ISelectHandler', EdgeSelectHandler);
+  container.registerSingleton<ISelectHandler>('ISelectHandler', VertexSelectHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', TranslateToolHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', ScaleToolHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', RotateToolHandler);
