@@ -34,3 +34,12 @@ export const SELECT_COLOR = 0xffaa00;
  * (line.material as THREE.LineBasicMaterial).color.setHex(EDGES_DEFAULT_COLOR);
  */
 export const EDGES_DEFAULT_COLOR = 0x222222;
+
+/**
+ * Цвет вершин.
+ *
+ * @remarks
+ * Применяется при выключении постоянной подсветки выбранной вершины.
+ * Должен визуально отличаться от {@link HOVER_COLOR} и {@link SELECT_COLOR}, чтобы не путать состояния.
+ */
+export const VERTEX_DEFAULT_COLOR = 0x222222;

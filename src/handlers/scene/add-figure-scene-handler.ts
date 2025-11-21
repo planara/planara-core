@@ -9,7 +9,9 @@ import { type FigureType, SceneMode } from '@planara/types';
 import { inject, injectable } from 'tsyringe';
 // Constants
 import { BASE_GEOMETRIES, BASE_MATERIAL } from '../../constants/figure-geometries';
-import { EDGES_DEFAULT_COLOR } from '../../constants/colors';
+import { MESH_LAYER } from '../../constants/layers';
+// Helpers
+import { makeLineSegments, makeVertexPoints } from '../../utils/helpers';
 
 /**
  * Хендлер для добавления базовых фигур на сцену.
@@ -38,17 +40,14 @@ export class AddFigureSceneHandler implements ISceneHandler {
     // Создание фигуры
     const mesh = new THREE.Mesh(geom, BASE_MATERIAL);
 
-    mesh.layers.enable(0);
+    mesh.layers.enable(MESH_LAYER);
 
     // внешние рёбра
-    const edges = new THREE.EdgesGeometry(mesh.geometry);
-    const line = new THREE.LineSegments(
-      edges,
-      new THREE.LineBasicMaterial({ color: EDGES_DEFAULT_COLOR, linewidth: 1 }),
-    );
-    line.layers.set(1);
-
+    const line = makeLineSegments(mesh.geometry);
     mesh.add(line);
+
+    const points = makeVertexPoints(mesh.geometry as THREE.BufferGeometry);
+    mesh.add(points);
 
     // Добавление фигуры на сцену
     this._api.addMesh(mesh);
