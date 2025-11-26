@@ -7,6 +7,8 @@ import type { IToolManager } from '../../interfaces/manager/tool-manager';
 import type { IEditorStore } from '../../interfaces/store/editor-store';
 // Types
 import { ToolType } from '@planara/types';
+import type { IToolAvailabilityPolicy } from '../../interfaces/policy/tool-availability-policy';
+import { ToolAvailabilityPolicy } from '../../policy/tool-availability-policy';
 
 @injectable()
 export class ToolManager implements IToolManager {
@@ -16,7 +18,11 @@ export class ToolManager implements IToolManager {
   /** Хендлеры, которые управляют инструментами */
   private readonly _handlers: Map<ToolType, IHandler>;
 
+  /** Событие обновления выбора объекта */
   private readonly _unsubSelected?: () => void;
+
+  /** Политика доступности инструментов */
+  private readonly _policy!: IToolAvailabilityPolicy;
 
   public constructor(
     @injectAll('IToolHandler') handlers: IToolHandler[],
@@ -29,10 +35,18 @@ export class ToolManager implements IToolManager {
     this._unsubSelected = this._store.onSelectedObjectChange(() => {
       this._handlers.get(this._currentTool)?.handle();
     });
+
+    // Создание политики
+    this._policy = new ToolAvailabilityPolicy();
   }
 
   public manage(tool: ToolType): void {
     if (this._currentTool === tool) return;
+
+    // Получение текущего режима выборки
+    const selection = this._store.getSelectMode();
+    // Проверка разрешения использования инструмента согласно правилам политики
+    if (!this._policy.isToolEnabled(tool, selection)) return;
 
     // Отключение предыдущего инструмента
     this._handlers.get(this._currentTool)?.rollback();
