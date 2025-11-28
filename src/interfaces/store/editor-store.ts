@@ -1,9 +1,11 @@
 // Core
 import * as THREE from 'three';
 // Types
-import type { DisplayMode, SelectMode, ToolType } from '@planara/types';
+import type { DisplayMode, FigureTransform, SelectMode, ToolType } from '@planara/types';
 import type { SelectedListener } from '../../types/listener/selected-listener';
+import type { TransformListener } from '../../types/listener/transform-listener';
 
+/** @public */
 export interface IEditorStore {
   /** Возвращает текущий режим выбора. */
   getSelectMode(): SelectMode;
@@ -36,9 +38,12 @@ export interface IEditorStore {
    * Возвращает текущий выбранный объект сцены.
    * @remarks
    * Предполагается, что до вызова этого метода уже был
-   * вызван {@link setSelectedObject}. Иначе результат не определён.
+   * вызван {@link IEditorStore.setSelectedObject}. Иначе результат не определён.
    */
   getSelectedObject(): THREE.Object3D | null;
+
+  /** Возвращает актуальную статистику по трансформации выбранного объекта. */
+  getSelectionStats(): FigureTransform | null;
 
   /**
    * Устанавливает текущий выбранный объект сцены.
@@ -51,4 +56,10 @@ export interface IEditorStore {
    * @param cb - Callback, получающий текущий выбранный объект (`THREE.Object3D | null`).
    */
   onSelectedObjectChange(cb: SelectedListener): () => void;
+
+  /** Подписывает слушателя на изменения трансформации выбранного объекта. */
+  onSelectedTransformChange(cb: TransformListener): () => void;
+
+  /** Уведомляет всех подписчиков о том, что трансформация выбранного объекта изменилась. */
+  notifySelectedTransformChange(): void;
 }
