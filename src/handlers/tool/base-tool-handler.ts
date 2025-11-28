@@ -12,10 +12,19 @@ import type { IEditorStore } from '../../interfaces/store/editor-store';
 export abstract class BaseToolHandler implements IToolHandler {
   public abstract readonly mode: ToolType;
 
+  private _unsubscribeTransform: () => void;
+
   protected constructor(
     protected api: ITransformHelpersApi,
     protected store: IEditorStore,
-  ) {}
+  ) {
+    this._unsubscribeTransform = this.api.onTransformChange(() => {
+      const selected = this.store.getSelectedObject();
+      if (!selected) return;
+
+      this.store.notifySelectedTransformChange?.();
+    });
+  }
 
   /**
    * Обновляет состояние инструмента под текущее выделение.
@@ -45,5 +54,9 @@ export abstract class BaseToolHandler implements IToolHandler {
   /** Освобождение ресурсов хендлера. */
   public dispose(): Promise<void> | void {
     this.rollback();
+
+    if (this._unsubscribeTransform) {
+      this._unsubscribeTransform();
+    }
   }
 }

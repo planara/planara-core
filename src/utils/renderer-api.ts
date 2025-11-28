@@ -4,12 +4,13 @@ import * as THREE from 'three';
 import type { IMeshApi } from '../interfaces/api/mesh-api';
 import type { ITransformHelpersApi } from '../interfaces/api/transform-helpers-api';
 import type { IRaycastAPI } from '../interfaces/api/raycast-api';
+import type { ISceneApi } from '../interfaces/api/scene-api';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Types
 import type { EditorRenderer } from '../core/editor-renderer';
 import type { SelectMode, ToolType } from '@planara/types';
-import type { ISceneApi } from '../interfaces/api/scene-api';
+import type { TransformListener } from '../types/listener/transform-listener';
 
 /**
  * API для EditorRenderer
@@ -81,5 +82,10 @@ export class RendererApi implements IMeshApi, ITransformHelpersApi, IRaycastAPI,
   /** @inheritdoc */
   public enableCameraLayer(layer: number): void {
     this._renderer.enableCameraLayer(layer);
+  }
+
+  /** @inheritdoc */
+  public onTransformChange(cb: TransformListener): () => void {
+    return this._renderer.onTransformChange(cb);
   }
 }

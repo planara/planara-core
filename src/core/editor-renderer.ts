@@ -15,8 +15,11 @@ import { EventBus } from '../events/event-bus';
 import { EventTopics } from '../events/event-topics';
 // Types
 import { type Figure, SelectMode, ToolType } from '@planara/types';
+import type { TransformListener } from '../types/listener/transform-listener';
+// Constants
 import { LINE_THRESHOLD, POINTS_THRESHOLD } from '../constants/threshold';
 import { MESH_LAYER } from '../constants/layers';
+// Helpers
 import { makeLineSegments, makeVertexPoints } from '../utils/helpers';
 
 /**
@@ -51,6 +54,8 @@ export class EditorRenderer extends Renderer {
 
   /** Gizmo для управления отображением perspective camera */
   private _cameraGizmo!: CameraAxesGizmo;
+
+  private _transformListeners = new Set<TransformListener>();
 
   public constructor(
     @inject('Canvas') private _canvas: HTMLCanvasElement,
@@ -149,6 +154,15 @@ export class EditorRenderer extends Renderer {
   }
 
   /**
+   * Подписывает слушателя на изменения трансформации текущего объекта.
+   * @internal
+   */
+  public onTransformChange(cb: TransformListener): () => void {
+    this._transformListeners.add(cb);
+    return () => this._transformListeners.delete(cb);
+  }
+
+  /**
    * Настройка режимов для `Raycaster`.
    * @internal
    */
@@ -188,6 +202,8 @@ export class EditorRenderer extends Renderer {
         this._orbit.enabled = !this._transform.dragging;
       });
 
+      this._transformListeners.clear();
+
       this._isEventListenersAdded = false;
     }
 
@@ -222,6 +238,9 @@ export class EditorRenderer extends Renderer {
     this.canvas.addEventListener('pointerleave', () => this._transform.pointerHover(null));
     this._transform.addEventListener('dragging-changed', () => {
       this._orbit.enabled = !this._transform.dragging;
+    });
+    this._transform.addEventListener('objectChange', () => {
+      for (const cb of this._transformListeners) cb();
     });
 
     this._isEventListenersAdded = true;

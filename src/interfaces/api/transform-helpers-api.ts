@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 // Types
 import type { ToolType } from '@planara/types';
+import type { TransformListener } from '../../types/listener/transform-listener';
 
 /**
  * Интерфейс для управления transform helper внутри рендерера.
@@ -22,8 +23,9 @@ export interface ITransformHelpersApi {
    */
   attach(obj: THREE.Object3D): void;
 
-  /**
-   * Открепление transform helper от объекта.
-   */
+  /** Открепление transform helper от объекта. */
   detach(): void;
+
+  /** Подписывает слушателя на изменения трансформации текущего объекта. */
+  onTransformChange(cb: TransformListener): () => void;
 }

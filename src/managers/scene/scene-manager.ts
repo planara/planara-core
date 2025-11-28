@@ -25,9 +25,7 @@ export class SceneManager implements ISceneManager {
 
   /** Установка режима редактирования сцены */
   public manage(mode: SceneMode, figure?: FigureType): void {
-    console.log('manage', mode);
     // Применение нового режима
-
     if (mode === SceneMode.AddFigure) this._handlers.get(mode)?.handle(figure);
     else this._handlers.get(mode)?.handle();
 

@@ -3,6 +3,8 @@ import * as THREE from 'three';
 // Constants
 import { EDGES_DEFAULT_COLOR, VERTEX_DEFAULT_COLOR } from '../constants/colors';
 import { LINE_LAYER, POINT_LAYER } from '../constants/layers';
+// Types
+import type { FigureTransform, Vec3 } from '@planara/types';
 
 /** Является ли `THREE.Object3D` `THREE.Mesh` */
 export const isMesh = (o: THREE.Object3D | null): o is THREE.Mesh => {
@@ -57,4 +59,21 @@ export const makeLineSegments = (geometry: THREE.BufferGeometry) => {
   line.layers.set(LINE_LAYER);
 
   return line;
+};
+
+/** Сбор статистики объекта */
+export const toFigureTransform = (obj: THREE.Object3D): FigureTransform => {
+  // Сбор статистики
+  const position: Vec3 = { x: obj.position.x, y: obj.position.y, z: obj.position.z };
+  const rotation: Vec3 = { x: obj.rotation.x, y: obj.rotation.y, z: obj.rotation.z };
+  const scale: Vec3 = { x: obj.scale.x, y: obj.scale.y, z: obj.scale.z };
+
+  // Получение габаритов модели
+  const bbox = new THREE.Box3().setFromObject(obj);
+  const sizeVec = new THREE.Vector3();
+  bbox.getSize(sizeVec);
+
+  const size: Vec3 = { x: sizeVec.x, y: sizeVec.y, z: sizeVec.z };
+
+  return { position, rotation, scale, size };
 };
