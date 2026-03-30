@@ -256,6 +256,9 @@ export class EditorRenderer extends Renderer {
     this._processRaycastEvent(e, EventTopics.SelectClick, false);
   };
 
+  // TODO: Для Face режима сравнение должно учитывать: object, faceIndex
+  // иначе face hover залипает на первои попадании в грань,
+  // следовательно это неудобно при работе с сферами, цилиндрами и тд
   /** Вспомогательный метод для получения модели, которую выбрали и отправки события в event bus */
   private _processRaycastEvent(
     e: MouseEvent,
