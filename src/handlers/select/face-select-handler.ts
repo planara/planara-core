@@ -152,6 +152,7 @@ export class FaceSelectHandler implements ISelectHandler {
       if (!group) return;
 
       this._writeWorldFaceGroup(this._selectFace, group);
+      this._centerFaceProxy(this._selectFace);
       this._selectFace.visible = true;
 
       // Подготовка метаданных для инструментов
@@ -172,7 +173,11 @@ export class FaceSelectHandler implements ISelectHandler {
     this._hoverFace.visible = false;
     this._selectFace.visible = false;
 
+    this._resetFaceProxyTransform(this._selectFace);
+    this._resetFaceProxyTransform(this._hoverFace);
+
     this._hovered = this._selected = null;
+    this._store.setSelectedObject(null);
   }
 
   /** Освобождает ресурсы хендлера, удаляет слушатели и очищает внутренние данные. */
@@ -234,10 +239,16 @@ export class FaceSelectHandler implements ISelectHandler {
 
     // Fallback для non-indexed geometry
     if (!index) {
+      const i0 = startFaceIndex * 3;
+      const i1 = startFaceIndex * 3 + 1;
+      const i2 = startFaceIndex * 3 + 2;
+
       return {
         mesh,
         faceIndex: startFaceIndex,
         triangleIndices: [startFaceIndex],
+        vertexIndices: [i0, i1, i2],
+        proxyVertexMap: [i0, i1, i2],
       };
     }
 
@@ -259,7 +270,7 @@ export class FaceSelectHandler implements ISelectHandler {
     const basePlane = new THREE.Plane().setFromNormalAndCoplanarPoint(baseNormal, a0);
 
     const visited = new Set<number>();
-    const result: number[] = [];
+    const triangleIndices: number[] = [];
     const stack: number[] = [startFaceIndex];
 
     while (stack.length > 0) {
@@ -285,7 +296,7 @@ export class FaceSelectHandler implements ISelectHandler {
 
       if (!sameNormal || !samePlane) continue;
 
-      result.push(triIndex);
+      triangleIndices.push(triIndex);
 
       const neighbors = adjacency.get(triIndex);
       if (!neighbors) continue;
@@ -295,12 +306,29 @@ export class FaceSelectHandler implements ISelectHandler {
       }
     }
 
-    result.sort((x, y) => x - y);
+    triangleIndices.sort((x, y) => x - y);
+
+    const vertexSet = new Set<number>();
+    const proxyVertexMap: number[] = [];
+
+    for (const triIndex of triangleIndices) {
+      const [i0, i1, i2] = this._getTriangleIndices(index, triIndex);
+
+      vertexSet.add(i0);
+      vertexSet.add(i1);
+      vertexSet.add(i2);
+
+      // Порядок должен совпадать с _writeWorldFaceGroup(),
+      // где вершины треугольников пишутся подряд: i0, i1, i2.
+      proxyVertexMap.push(i0, i1, i2);
+    }
 
     return {
       mesh,
       faceIndex: startFaceIndex,
-      triangleIndices: result,
+      triangleIndices,
+      vertexIndices: Array.from(vertexSet),
+      proxyVertexMap,
     };
   }
 
@@ -364,11 +392,53 @@ export class FaceSelectHandler implements ISelectHandler {
 
   /** Подготовка метаданных выбранной грани для инструментов */
   private _prepareFaceMetadata(group: FaceGroup): void {
+    const { vertexIndexGroups, proxyVertexMap, lines, lineVertexIndexGroups } =
+      this._buildFaceVertexGroups(group);
+
     this._selectFace.userData.faceInfo = {
       mesh: group.mesh,
       faceIndex: group.faceIndex,
       triangleIndices: group.triangleIndices,
+      vertexIndices: group.vertexIndices,
+      vertexIndexGroups,
+      proxyVertexMap,
+      lines,
+      lineVertexIndexGroups,
     };
+  }
+
+  /**
+   * Центрирует proxy-грань, чтобы TransformControls работали с ней как с обычным объектом.
+   * После записи world-space вершин переносит геометрию в локальные координаты proxy mesh.
+   */
+  private _centerFaceProxy(faceMesh: THREE.Mesh): void {
+    const geometry = faceMesh.geometry as THREE.BufferGeometry;
+    const pos = geometry.getAttribute('position') as THREE.BufferAttribute;
+    if (!pos || pos.count === 0) return;
+
+    const center = new THREE.Vector3();
+
+    for (let i = 0; i < pos.count; i++) {
+      center.x += pos.getX(i);
+      center.y += pos.getY(i);
+      center.z += pos.getZ(i);
+    }
+
+    center.multiplyScalar(1 / pos.count);
+
+    for (let i = 0; i < pos.count; i++) {
+      pos.setXYZ(i, pos.getX(i) - center.x, pos.getY(i) - center.y, pos.getZ(i) - center.z);
+    }
+
+    pos.needsUpdate = true;
+
+    faceMesh.position.copy(center);
+    faceMesh.quaternion.identity();
+    faceMesh.scale.set(1, 1, 1);
+    faceMesh.updateMatrixWorld(true);
+
+    geometry.computeBoundingBox();
+    geometry.computeBoundingSphere();
   }
 
   /** Регистрирует ребро треугольника в edge map */
@@ -476,5 +546,125 @@ export class FaceSelectHandler implements ISelectHandler {
     }
 
     return indexToWelded;
+  }
+
+  /** Сбрасывает transform proxy-граням */
+  private _resetFaceProxyTransform(faceMesh: THREE.Mesh): void {
+    faceMesh.position.set(0, 0, 0);
+    faceMesh.quaternion.identity();
+    faceMesh.scale.set(1, 1, 1);
+    faceMesh.updateMatrixWorld(true);
+  }
+
+  private _buildFaceVertexGroups(group: FaceGroup): {
+    vertexIndexGroups: number[][];
+    proxyVertexMap: number[];
+    lines?: THREE.LineSegments;
+    lineVertexIndexGroups?: number[][];
+  } {
+    const geometry = group.mesh.geometry as THREE.BufferGeometry;
+    const pos = geometry.getAttribute('position') as THREE.BufferAttribute;
+
+    const EPS = 1e-6;
+    const tmp = new THREE.Vector3();
+
+    const uniqueVertexIndices = group.vertexIndices;
+    const vertexIndexGroups: number[][] = [];
+
+    // mesh vertex index -> group index
+    const vertexToGroup = new Map<number, number>();
+
+    for (const vertexIndex of uniqueVertexIndices) {
+      const base = this._readVertex(pos, vertexIndex);
+      const groupIndices: number[] = [];
+
+      for (let i = 0; i < pos.count; i++) {
+        tmp.fromBufferAttribute(pos, i);
+
+        if (tmp.distanceToSquared(base) < EPS * EPS) {
+          groupIndices.push(i);
+        }
+      }
+
+      const groupIndex = vertexIndexGroups.length;
+      vertexIndexGroups.push(groupIndices);
+
+      for (const idx of groupIndices) {
+        vertexToGroup.set(idx, groupIndex);
+      }
+    }
+
+    const proxyVertexMap: number[] = [];
+
+    for (const meshVertexIndex of group.proxyVertexMap) {
+      const groupIndex = vertexToGroup.get(meshVertexIndex);
+      proxyVertexMap.push(groupIndex ?? -1);
+    }
+
+    const lines = this._findChildLines(group.mesh);
+    const lineVertexIndexGroups = lines ? this._buildLineVertexGroups(group, lines) : undefined;
+
+    const result: {
+      vertexIndexGroups: number[][];
+      proxyVertexMap: number[];
+      lines?: THREE.LineSegments;
+      lineVertexIndexGroups?: number[][];
+    } = {
+      vertexIndexGroups,
+      proxyVertexMap,
+    };
+
+    if (lines) {
+      result.lines = lines;
+    }
+
+    if (lineVertexIndexGroups) {
+      result.lineVertexIndexGroups = lineVertexIndexGroups;
+    }
+
+    return result;
+  }
+
+  private _findChildLines(mesh: THREE.Mesh): THREE.LineSegments | null {
+    for (const child of mesh.children) {
+      if ((child as any).isLineSegments) {
+        return child as THREE.LineSegments;
+      }
+    }
+    return null;
+  }
+
+  private _buildLineVertexGroups(group: FaceGroup, lines: THREE.LineSegments): number[][] {
+    const lineGeometry = lines.geometry as THREE.BufferGeometry;
+    const linePos = lineGeometry.getAttribute('position') as THREE.BufferAttribute;
+
+    const meshGeometry = group.mesh.geometry as THREE.BufferGeometry;
+    const meshPos = meshGeometry.getAttribute('position') as THREE.BufferAttribute;
+
+    const EPS = 1e-6;
+    const tmp = new THREE.Vector3();
+
+    const toWorldLines = lines.matrixWorld;
+    const toWorldMesh = group.mesh.matrixWorld;
+
+    const groups: number[][] = [];
+
+    for (const meshVertexIndex of group.vertexIndices) {
+      const meshWorld = this._readVertex(meshPos, meshVertexIndex).applyMatrix4(toWorldMesh);
+
+      const lineIndices: number[] = [];
+
+      for (let i = 0; i < linePos.count; i++) {
+        tmp.fromBufferAttribute(linePos, i).applyMatrix4(toWorldLines);
+
+        if (tmp.distanceToSquared(meshWorld) < EPS * EPS) {
+          lineIndices.push(i);
+        }
+      }
+
+      groups.push(lineIndices);
+    }
+
+    return groups;
   }
 }

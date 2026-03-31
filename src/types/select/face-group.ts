@@ -14,4 +14,16 @@ export type FaceGroup = {
 
   /** Индексы треугольников, входящих в грань. */
   triangleIndices: number[];
+
+  /**
+   * Уникальные индексы вершин исходной geometry,
+   * которые участвуют в выбранной грани.
+   */
+  vertexIndices: number[];
+
+  /**
+   * Отображение вершин proxy-геометрии в индексы вершин исходного меша.
+   * Нужен для обратной записи transform'а proxy обратно в mesh geometry.
+   */
+  proxyVertexMap: number[];
 };
