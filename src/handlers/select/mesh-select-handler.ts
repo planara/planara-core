@@ -110,6 +110,7 @@ export class MeshSelectHandler implements ISelectHandler {
 
     // Очистка записей о моделях
     this._hoveredMesh = this._selectedMesh = null;
+    this._store.setSelectedObject(null);
   }
 
   /** Освобождает ресурсы хендлера, удаляет слушатели и очищает внутренние данные. */

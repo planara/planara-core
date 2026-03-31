@@ -140,6 +140,7 @@ export class VertexSelectHandler implements ISelectHandler {
 
     // Удаляем сохраненные пересечения
     this._hovered = this._selected = null;
+    this._store.setSelectedObject(null);
   }
 
   public dispose(): Promise<void> | void {

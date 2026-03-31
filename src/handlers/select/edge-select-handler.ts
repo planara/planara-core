@@ -142,6 +142,7 @@ export class EdgeSelectHandler implements ISelectHandler {
 
     // Удаляем сохраненные пересечения
     this._hovered = this._selected = null;
+    this._store.setSelectedObject(null);
   }
 
   /** Освобождает ресурсы хендлера, удаляет слушатели и очищает внутренние данные. */

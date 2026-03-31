@@ -24,6 +24,7 @@ export const createAppHub = (canvas: HTMLCanvasElement): EditorHub => {
 
 /**
  * Возвращает уже созданный хаб, если редактор инициализирован.
+ * @public
  */
 export const getAppHub = (): EditorHub => {
   if (!_container) {
