@@ -4,6 +4,7 @@ import type { SelectMode, ToolType } from '@planara/types';
 /**
  * Политика доступности инструментов
  * @internal
+ * @interface
  */
 export interface IToolAvailabilityPolicy {
   /** Доступен ли инструмент при текущем режиме выборки */

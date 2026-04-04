@@ -3,9 +3,11 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IEditorApi } from '../../types/api/editor-api';
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
 import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ICameraApi } from '../../interfaces/api/camera-api';
+import type { ISceneApi } from '../../interfaces/api/scene-api';
+import type { IRaycastApi } from '../../interfaces/api/raycast-api';
 // Types
 import { SelectMode } from '@planara/types';
 // Events
@@ -46,19 +48,21 @@ export class VertexSelectHandler implements ISelectHandler {
   private readonly _selectColor = SELECT_COLOR;
 
   public constructor(
-    @inject('RendererApi') private _api: IEditorApi,
+    @inject('ICameraApi') private _cameraApi: ICameraApi,
+    @inject('ISceneApi') private _sceneApi: ISceneApi,
+    @inject('IRaycastApi') private _raycastApi: IRaycastApi,
     @inject('IEditorStore') private _store: IEditorStore,
   ) {
     // Устанавливаем слой отображения линий для камеры
-    this._api.enableCameraLayer(OVERLAY_LAYER);
+    this._cameraApi.enableCameraLayer(OVERLAY_LAYER);
 
     // Создание вершин для добавления на сцену
     this._hoverVertex = this._makeOverlayVertex(this._hoverColor);
     this._selectVertex = this._makeOverlayVertex(this._selectColor);
 
     // Добавление вершин на сцену
-    this._api.addObject(this._hoverVertex, OVERLAY_LAYER);
-    this._api.addObject(this._selectVertex, OVERLAY_LAYER);
+    this._sceneApi.addObject(this._hoverVertex, OVERLAY_LAYER);
+    this._sceneApi.addObject(this._selectVertex, OVERLAY_LAYER);
   }
 
   public handle(
@@ -66,7 +70,7 @@ export class VertexSelectHandler implements ISelectHandler {
     type: SelectEventType,
   ): void {
     // Устанавливаем режим обработки пересечений для Raycaster
-    this._api.setRaycastMode(this.mode);
+    this._raycastApi.setRaycastMode(this.mode);
 
     // Обработка hover-события
     if (type === SelectEventType.Hover) {
@@ -147,8 +151,8 @@ export class VertexSelectHandler implements ISelectHandler {
     this.rollback();
 
     // Убираем вершины со сцены
-    this._api.removeObject(this._hoverVertex);
-    this._api.removeObject(this._selectVertex);
+    this._sceneApi.removeFromScene(this._hoverVertex);
+    this._sceneApi.removeFromScene(this._selectVertex);
 
     // Очищаем ресурсы линий
     this._hoverVertex.geometry.dispose();

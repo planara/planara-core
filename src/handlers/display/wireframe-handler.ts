@@ -4,9 +4,9 @@ import * as THREE from 'three';
 import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
+import type { IMeshApi } from '../../interfaces/api/mesh-api';
 // Types
 import { DisplayMode } from '@planara/types';
-import type { IMeshApi } from '../../interfaces/api/mesh-api';
 
 /**
  * Хендлер для включения wireframe-режима.
@@ -28,7 +28,7 @@ export class WireframeHandler implements IDisplayHandler {
   /** Цвет ребер для wireframe-режима. */
   private _wireColor = new THREE.Color(0x00ffff);
 
-  public constructor(@inject('RendererApi') private _api: IMeshApi) {}
+  public constructor(@inject('IMeshApi') private _api: IMeshApi) {}
 
   /** Применяет wireframe-режим к сцене. */
   public handle(): void {

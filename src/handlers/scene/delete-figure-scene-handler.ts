@@ -25,7 +25,7 @@ export class DeleteFigureSceneHandler implements ISceneHandler {
   private _lastDeletedMesh: THREE.Mesh | null = null;
 
   public constructor(
-    @inject('RendererApi') private _api: IMeshApi,
+    @inject('IMeshApi') private _api: IMeshApi,
     @inject('IEditorStore') private _store: IEditorStore,
   ) {}
 

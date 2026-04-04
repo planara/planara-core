@@ -2,8 +2,8 @@ import 'reflect-metadata';
 
 // Renderers
 export * from './core/renderer';
-export * from './core/editor-renderer';
-export * from './core/preview-renderer';
+// Controllers
+export * from './interfaces/controllers/controller';
 // Loaders
 export * from './loaders/obj-loader';
 // Hub
@@ -16,6 +16,11 @@ export * from './interfaces/manager/select-manager';
 export * from './interfaces/manager/tool-manager';
 export * from './interfaces/manager/scene-manager';
 export * from './interfaces/store/editor-store';
+export * from './interfaces/api/renderer/renderable';
+export * from './interfaces/api/renderer/renderer-access';
+export * from './interfaces/api/renderer/renderer-camera-access';
+export * from './interfaces/api/renderer/renderer-dom-access';
+export * from './interfaces/api/renderer/renderer-scene-access';
 // Event Bus
 export * from './events/event-bus';
 // Types

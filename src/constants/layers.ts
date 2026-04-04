@@ -8,6 +8,9 @@
  * @example
  * camera.layers.enable(MESH_LAYER);
  * raycaster.layers.set(MESH_LAYER);
+ *
+ * @internal
+ * @const
  */
 export const MESH_LAYER = 0;
 
@@ -22,6 +25,9 @@ export const MESH_LAYER = 0;
  * camera.layers.enable(LINE_LAYER);
  * raycaster.layers.set(LINE_LAYER);
  * raycaster.params.Line.threshold = 0.03;
+ *
+ * @internal
+ * @const
  */
 export const LINE_LAYER = 1;
 
@@ -36,6 +42,9 @@ export const LINE_LAYER = 1;
  * camera.layers.enable(POINT_LAYER);
  * raycaster.layers.set(POINT_LAYER);
  * raycaster.params.Points.threshold = 0.03;
+ *
+ * @internal
+ * @const
  */
 export const POINT_LAYER = 2;
 
@@ -50,5 +59,8 @@ export const POINT_LAYER = 2;
  * camera.layers.enable(OVERLAY_LAYER); // камера видит подсветку
  * // Raycaster НЕ видит подсветку:
  * // raycaster.layers.set(...) — без OVERLAY_LAYER
+ *
+ * @internal
+ * @const
  */
 export const OVERLAY_LAYER = 31;

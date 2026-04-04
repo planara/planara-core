@@ -1,10 +1,13 @@
+// Interfaces
 import type { Disposable } from 'tsyringe';
 
 /**
  * Общий интерфейс для всех хендлеров.
  * Хендлеры выполняют действия по настройке рендерера,
  * управляют состоянием сцены или конкретных режимов отображения.
+ *
  * @internal
+ * @interface
  */
 export interface IHandler extends Disposable {
   /**

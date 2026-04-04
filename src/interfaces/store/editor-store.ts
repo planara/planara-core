@@ -5,7 +5,12 @@ import type { DisplayMode, FigureTransform, SelectMode, ToolType } from '@planar
 import type { SelectedListener } from '../../types/listener/selected-listener';
 import type { TransformListener } from '../../types/listener/transform-listener';
 
-/** @public */
+/**
+ * Общий store для менеджеров и хендлеров,
+ * необходим для корректного взаимодействия между группами фичей
+ * @public
+ * @interface
+ */
 export interface IEditorStore {
   /** Возвращает текущий режим выбора. */
   getSelectMode(): SelectMode;

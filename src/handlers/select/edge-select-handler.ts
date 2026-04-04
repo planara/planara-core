@@ -3,9 +3,11 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IEditorApi } from '../../types/api/editor-api';
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
 import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ISceneApi } from '../../interfaces/api/scene-api';
+import type { ICameraApi } from '../../interfaces/api/camera-api';
+import type { IRaycastApi } from '../../interfaces/api/raycast-api';
 // Types
 import { SelectMode } from '@planara/types';
 // Events
@@ -47,19 +49,21 @@ export class EdgeSelectHandler implements ISelectHandler {
   private readonly _selectColor = SELECT_COLOR;
 
   public constructor(
-    @inject('RendererApi') private _api: IEditorApi,
+    @inject('ISceneApi') private _sceneApi: ISceneApi,
+    @inject('ICameraApi') private _cameraApi: ICameraApi,
+    @inject('IRaycastApi') private _raycastApi: IRaycastApi,
     @inject('IEditorStore') private _store: IEditorStore,
   ) {
     // Устанавливаем слой отображения линий для камеры
-    this._api.enableCameraLayer(OVERLAY_LAYER);
+    this._cameraApi.enableCameraLayer(OVERLAY_LAYER);
 
     // Создание линий для добавления на сцену
     this._hoverLine = this._makeOverlayLine(this._hoverColor);
     this._selectLine = this._makeOverlayLine(this._selectColor);
 
     // Добавление линий на сцену
-    this._api.addObject(this._hoverLine, OVERLAY_LAYER);
-    this._api.addObject(this._selectLine, OVERLAY_LAYER);
+    this._sceneApi.addObject(this._hoverLine, OVERLAY_LAYER);
+    this._sceneApi.addObject(this._selectLine, OVERLAY_LAYER);
   }
 
   /** Обработка текущего режима выборки. */
@@ -68,7 +72,7 @@ export class EdgeSelectHandler implements ISelectHandler {
     type: SelectEventType,
   ): void {
     // Устанавливаем режим обработки пересечений для Raycaster
-    this._api.setRaycastMode(this.mode);
+    this._raycastApi.setRaycastMode(this.mode);
 
     // Обработка hover-события
     if (type === SelectEventType.Hover) {
@@ -149,8 +153,8 @@ export class EdgeSelectHandler implements ISelectHandler {
   public dispose(): Promise<void> | void {
     this.rollback();
     // Убираем линии со сцены
-    this._api.removeObject(this._hoverLine);
-    this._api.removeObject(this._selectLine);
+    this._sceneApi.removeFromScene(this._hoverLine);
+    this._sceneApi.removeFromScene(this._selectLine);
 
     // Очищаем ресурсы линий
     this._hoverLine.geometry.dispose();

@@ -1,7 +1,7 @@
 // Types
 import type { ToolType } from '@planara/types';
 // Interfaces
-import type { ITransformHelpersApi } from '../../interfaces/api/transform-helpers-api';
+import type { ITransformApi } from '../../interfaces/api/transform-api';
 import type { IToolHandler } from '../../interfaces/handler/tool-handler';
 import type { IEditorStore } from '../../interfaces/store/editor-store';
 
@@ -12,10 +12,10 @@ import type { IEditorStore } from '../../interfaces/store/editor-store';
 export abstract class BaseToolHandler implements IToolHandler {
   public abstract readonly mode: ToolType;
 
-  private _unsubscribeTransform: () => void;
+  private readonly _unsubscribeTransform: () => void;
 
   protected constructor(
-    protected api: ITransformHelpersApi,
+    protected api: ITransformApi,
     protected store: IEditorStore,
   ) {
     this._unsubscribeTransform = this.api.onTransformChange(() => {
@@ -34,12 +34,12 @@ export abstract class BaseToolHandler implements IToolHandler {
     const target = this.store.getSelectedObject();
 
     // Смена режима transform controls
-    this.api.setMode(this.mode);
+    this.api.setTransformMode(this.mode);
 
     // Если есть объект, то добавляем transform controls
-    if (target) this.api.attach(target);
+    if (target) this.api.attachTransform(target);
     // Иначе - скрываем хелперы
-    else this.api.detach();
+    else this.api.detachTransform();
   }
 
   /**
@@ -48,7 +48,7 @@ export abstract class BaseToolHandler implements IToolHandler {
    * Вызывается менеджером перед активацией другого хендлера.
    */
   public rollback(): void {
-    this.api.detach();
+    this.api.detachTransform();
   }
 
   /** Освобождение ресурсов хендлера. */

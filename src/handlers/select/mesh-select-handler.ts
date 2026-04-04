@@ -5,7 +5,7 @@ import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
 import type { IEditorStore } from '../../interfaces/store/editor-store';
-import type { IRaycastAPI } from '../../interfaces/api/raycast-api';
+import type { IRaycastApi } from '../../interfaces/api/raycast-api';
 // Types
 import { SelectMode } from '@planara/types';
 // Events
@@ -41,7 +41,7 @@ export class MeshSelectHandler implements ISelectHandler {
   private readonly _origLineColors = new WeakMap<THREE.LineSegments, THREE.Color>();
 
   public constructor(
-    @inject('RendererApi') private _api: IRaycastAPI,
+    @inject('IRaycastApi') private _api: IRaycastApi,
     @inject('IEditorStore') private _store: IEditorStore,
   ) {}
 

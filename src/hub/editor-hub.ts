@@ -1,3 +1,5 @@
+// Core
+import type { Renderer } from '../core/renderer';
 // IOC
 import { type Disposable, inject, injectable } from 'tsyringe';
 // Types
@@ -12,10 +14,10 @@ import {
 // Interfaces
 import type { IDisplayManager } from '../interfaces/manager/display-manager';
 import type { ISelectManager } from '../interfaces/manager/select-manager';
-import type { EditorRenderer } from '../core/editor-renderer';
 import type { IToolManager } from '../interfaces/manager/tool-manager';
 import type { ISceneManager } from '../interfaces/manager/scene-manager';
 import type { IEditorStore } from '../interfaces/store/editor-store';
+import type { IController } from '../interfaces/controllers/controller';
 
 /**
  * Хаб для управления редактированием
@@ -28,8 +30,9 @@ export class EditorHub implements Disposable {
     @inject('ISelectManager') private _selectManager: ISelectManager,
     @inject('IToolManager') private _toolManager: IToolManager,
     @inject('ISceneManager') private _sceneManager: ISceneManager,
-    @inject('EditorRenderer') private _renderer: EditorRenderer,
+    @inject('Renderer') private _renderer: Renderer,
     @inject('IEditorStore') private _store: IEditorStore,
+    @inject('IController') private _controller: IController,
   ) {
     this.setSelectMode(SelectMode.Mesh);
     this.setToolMode(ToolType.Translate);
@@ -55,8 +58,19 @@ export class EditorHub implements Disposable {
     this._renderer.resize();
   }
 
-  public updateRenderer() {
-    this._renderer.loop();
+  /**
+   * Запускает редактор.
+   * Вызывается после создания хаба.
+   */
+  public start(): void {
+    this._controller.start();
+  }
+
+  /**
+   * Останавливает редактор.
+   */
+  public stop(): void {
+    this._controller.stop();
   }
 
   public addFigure(mode: SceneMode, figure: FigureType) {
@@ -85,6 +99,5 @@ export class EditorHub implements Disposable {
   public dispose(): Promise<void> | void {
     this._displayManager.dispose();
     this._selectManager.dispose();
-    this._renderer.dispose();
   }
 }

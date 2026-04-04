@@ -8,6 +8,9 @@
  *
  * @example
  * (line.material as THREE.LineBasicMaterial).color.setHex(HOVER_COLOR);
+ *
+ * @internal
+ * @const
  */
 export const HOVER_COLOR = 0xffff00;
 
@@ -20,6 +23,9 @@ export const HOVER_COLOR = 0xffff00;
  *
  * @example
  * (line.material as THREE.LineBasicMaterial).color.setHex(SELECT_COLOR);
+ *
+ * @internal
+ * @const
  */
 export const SELECT_COLOR = 0xffaa00;
 
@@ -32,6 +38,9 @@ export const SELECT_COLOR = 0xffaa00;
  *
  * @example
  * (line.material as THREE.LineBasicMaterial).color.setHex(EDGES_DEFAULT_COLOR);
+ *
+ * @internal
+ * @const
  */
 export const EDGES_DEFAULT_COLOR = 0x222222;
 
@@ -41,5 +50,8 @@ export const EDGES_DEFAULT_COLOR = 0x222222;
  * @remarks
  * Применяется при выключении постоянной подсветки выбранной вершины.
  * Должен визуально отличаться от {@link HOVER_COLOR} и {@link SELECT_COLOR}, чтобы не путать состояния.
+ *
+ * @internal
+ * @const
  */
 export const VERTEX_DEFAULT_COLOR = 0x222222;

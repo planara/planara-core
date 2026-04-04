@@ -5,7 +5,9 @@ import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
 import type { IEditorStore } from '../../interfaces/store/editor-store';
-import type { IEditorApi } from '../../types/api/editor-api';
+import type { ICameraApi } from '../../interfaces/api/camera-api';
+import type { ISceneApi } from '../../interfaces/api/scene-api';
+import type { IRaycastApi } from '../../interfaces/api/raycast-api';
 // Types
 import { SelectMode } from '@planara/types';
 import type { FaceGroup } from '../../types/select/face-group';
@@ -18,20 +20,6 @@ import { HOVER_COLOR, SELECT_COLOR } from '../../constants/colors';
 import { OVERLAY_LAYER } from '../../constants/layers';
 
 /*
- * =========================================================================================
- *
- * Hover по Face может не обновляться при перемещении курсора внутри одного и того же Mesh,
- * так как raycast для hover-событий сравнивает только intersection.object.
- *
- * Для Face режима сравнение должно учитывать:
- * - object
- * - faceIndex
- *
- * Текущая реализация оставлена как есть намеренно.
- * Это ограничение относится к слою raycast-событий, а не к логике FaceSelectHandler.
- *
- * =========================================================================================
- *
  * Сама идея схожа с поведением vertex/edge selection, взять прокси объекты и копировать геометрию модели на прокси
  * Для граней используется массив треугольников, который после нахождения треугольников грани у модели группируется в отдельный Mesh
  * Таким образом, можно получать "слепок" грани любой фигуры(геометрии) независимо от количества точек и ребер.
@@ -76,19 +64,21 @@ export class FaceSelectHandler implements ISelectHandler {
   private readonly _planeEps = 1e-4;
 
   public constructor(
-    @inject('RendererApi') private _api: IEditorApi,
+    @inject('ICameraApi') private _cameraApi: ICameraApi,
+    @inject('ISceneApi') private _sceneApi: ISceneApi,
+    @inject('IRaycastApi') private _raycastApi: IRaycastApi,
     @inject('IEditorStore') private _store: IEditorStore,
   ) {
     // Устанавливаем слой отображения граней для камеры
-    this._api.enableCameraLayer(OVERLAY_LAYER);
+    this._cameraApi.enableCameraLayer(OVERLAY_LAYER);
 
     // Создание граней для добавления на сцену
     this._hoverFace = this._makeOverlayFace(this._hoverColor);
     this._selectFace = this._makeOverlayFace(this._selectColor);
 
     // Добавление граней на сцену
-    this._api.addObject(this._hoverFace, OVERLAY_LAYER);
-    this._api.addObject(this._selectFace, OVERLAY_LAYER);
+    this._sceneApi.addObject(this._hoverFace, OVERLAY_LAYER);
+    this._sceneApi.addObject(this._selectFace, OVERLAY_LAYER);
   }
 
   /** Обработка текущего режима выборки. */
@@ -96,7 +86,7 @@ export class FaceSelectHandler implements ISelectHandler {
     payload: EditorEvents[EventTopics.SelectHover] | EditorEvents[EventTopics.SelectClick],
     type: SelectEventType,
   ): void {
-    this._api.setRaycastMode(this.mode);
+    this._raycastApi.setRaycastMode(this.mode);
 
     // Обработка hover-события
     if (type === SelectEventType.Hover) {
@@ -184,8 +174,8 @@ export class FaceSelectHandler implements ISelectHandler {
   public dispose(): Promise<void> | void {
     this.rollback();
 
-    this._api.removeObject(this._hoverFace);
-    this._api.removeObject(this._selectFace);
+    this._sceneApi.removeFromScene(this._hoverFace);
+    this._sceneApi.removeFromScene(this._selectFace);
 
     this._hoverFace.geometry.dispose();
     (this._hoverFace.material as THREE.Material).dispose();

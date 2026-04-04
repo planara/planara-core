@@ -1,7 +1,7 @@
 // Core
 import { BaseToolHandler } from './base-tool-handler';
 // Interfaces
-import type { ITransformHelpersApi } from '../../interfaces/api/transform-helpers-api';
+import type { ITransformApi } from '../../interfaces/api/transform-api';
 import type { IEditorStore } from '../../interfaces/store/editor-store';
 // Types
 import { ToolType } from '@planara/types';
@@ -24,7 +24,7 @@ export class RotateToolHandler extends BaseToolHandler {
   public readonly mode: ToolType = ToolType.Rotate;
 
   public constructor(
-    @inject('RendererApi') api: ITransformHelpersApi,
+    @inject('ITransformApi') api: ITransformApi,
     @inject('IEditorStore') store: IEditorStore,
   ) {
     super(api, store);
