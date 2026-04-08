@@ -2,7 +2,7 @@
 import { BaseToolHandler } from './base-tool-handler';
 // Interfaces
 import type { ITransformApi } from '../../interfaces/api/transform-api';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ITransformStore } from '../../interfaces/store/transform-store';
 // Types
 import { ToolType } from '@planara/types';
 // IOC
@@ -16,6 +16,7 @@ import { inject, injectable } from 'tsyringe';
  * - прикрепляет к текущему объекту или отцепляет его.
  *
  * @internal
+ * @class
  * @extends BaseToolHandler
  */
 @injectable()
@@ -25,7 +26,7 @@ export class RotateToolHandler extends BaseToolHandler {
 
   public constructor(
     @inject('ITransformApi') api: ITransformApi,
-    @inject('IEditorStore') store: IEditorStore,
+    @inject('EditorStore') store: ITransformStore,
   ) {
     super(api, store);
   }

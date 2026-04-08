@@ -56,7 +56,6 @@ import { EditorHub } from '../hub/editor-hub';
 import { EventBus } from '../events/event-bus';
 // Store
 import { EditorStore } from '../store';
-import type { IEditorStore } from '../interfaces/store/editor-store';
 // Policies
 import { ToolPolicy } from '../policy/tool-policy';
 
@@ -129,7 +128,7 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
   container.registerSingleton('EditorHub', EditorHub);
 
   // Store
-  container.registerSingleton<IEditorStore>('IEditorStore', EditorStore);
+  container.registerSingleton('EditorStore', EditorStore);
 
   isContainerInitialized = true;
 

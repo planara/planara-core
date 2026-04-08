@@ -3,11 +3,14 @@ import type { ToolType } from '@planara/types';
 // Interfaces
 import type { ITransformApi } from '../../interfaces/api/transform-api';
 import type { IToolHandler } from '../../interfaces/handler/tool-handler';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ITransformStore } from '../../interfaces/store/transform-store';
 
 /**
  * Базовый класс для инструментов
+ *
  * @internal
+ * @class
+ * @abstract
  */
 export abstract class BaseToolHandler implements IToolHandler {
   public abstract readonly mode: ToolType;
@@ -16,7 +19,7 @@ export abstract class BaseToolHandler implements IToolHandler {
 
   protected constructor(
     protected api: ITransformApi,
-    protected store: IEditorStore,
+    protected store: ITransformStore,
   ) {
     this._unsubscribeTransform = this.api.onTransformChange(() => {
       const selected = this.store.getSelectedObject();

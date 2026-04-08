@@ -11,7 +11,9 @@ import { DisplayMode } from '@planara/types';
 /**
  * Хендлер для включения wireframe-режима.
  * Управляет сценой через RendererApi.
+ *
  * @internal
+ * @class
  */
 @injectable()
 export class WireframeHandler implements IDisplayHandler {

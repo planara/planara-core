@@ -2,13 +2,12 @@
 import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { IPolicy } from '../interfaces/policy';
+import type { ISelectStore } from '../interfaces/store/select-store';
 // Types
 import { DEFAULT_TOOL_RULES, type ToolType } from '@planara/types';
 import { ResponseType } from '../types/response/response-type';
 // Errors
 import { PolicyError } from '../errors/policy-error';
-// Store
-import type { IEditorStore } from '../interfaces/store/editor-store';
 
 /**
  * Политика управления инструментами.
@@ -21,7 +20,7 @@ import type { IEditorStore } from '../interfaces/store/editor-store';
  */
 @injectable()
 export class ToolPolicy implements IPolicy {
-  public constructor(@inject('IEditorStore') private _store: IEditorStore) {}
+  public constructor(@inject('EditorStore') private _store: ISelectStore) {}
 
   public check(tool: ToolType): void {
     const selection = this._store.getSelectMode();

@@ -16,7 +16,9 @@ import { makeLineSegments, makeVertexPoints } from '../../utils/helpers';
 /**
  * Хендлер для добавления базовых фигур на сцену.
  * Управляет сценой через RendererApi.
+ *
  * @internal
+ * @class
  */
 @injectable()
 export class AddFigureSceneHandler implements ISceneHandler {

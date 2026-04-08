@@ -4,7 +4,7 @@ import { inject, injectable, injectAll } from 'tsyringe';
 import type { IHandler } from '../../interfaces/handler/handler';
 import type { IToolHandler } from '../../interfaces/handler/tool-handler';
 import type { IToolManager } from '../../interfaces/manager/tool-manager';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ITransformStore } from '../../interfaces/store/transform-store';
 import type { IPolicy } from '../../interfaces/policy';
 // Types
 import { ToolType } from '@planara/types';
@@ -24,7 +24,7 @@ export class ToolManager implements IToolManager {
 
   public constructor(
     @injectAll('IToolHandler') handlers: IToolHandler[],
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ITransformStore,
     @inject('ToolPolicy') private _policy: IPolicy,
   ) {
     // Получение хендлеров

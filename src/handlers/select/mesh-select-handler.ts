@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ISelectStore } from '../../interfaces/store/select-store';
 import type { IRaycastApi } from '../../interfaces/api/raycast-api';
 // Types
 import { SelectMode } from '@planara/types';
@@ -20,7 +20,9 @@ import { HOVER_COLOR, SELECT_COLOR } from '../../constants/colors';
  * Управляет сценой через payload события рендерера.
  * Обрабатывает hover и click.
  * Меняет цвет ребер конкретной модели из payload, в случае null возвращает исходное состояние.
+ *
  * @internal
+ * @class
  */
 @injectable()
 export class MeshSelectHandler implements ISelectHandler {
@@ -42,7 +44,7 @@ export class MeshSelectHandler implements ISelectHandler {
 
   public constructor(
     @inject('IRaycastApi') private _api: IRaycastApi,
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ISelectStore,
   ) {}
 
   public handle(

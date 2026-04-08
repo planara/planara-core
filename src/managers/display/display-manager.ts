@@ -4,7 +4,7 @@ import { inject, injectable, injectAll } from 'tsyringe';
 import type { IDisplayManager } from '../../interfaces/manager/display-manager';
 import type { IHandler } from '../../interfaces/handler/handler';
 import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { IDisplayStore } from '../../interfaces/store/display-store';
 // Types
 import { DisplayMode } from '@planara/types';
 
@@ -22,7 +22,7 @@ export class DisplayManager implements IDisplayManager {
 
   public constructor(
     @injectAll('IDisplayHandler') handlers: IDisplayHandler[],
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: IDisplayStore,
   ) {
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));
   }

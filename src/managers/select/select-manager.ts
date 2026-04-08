@@ -2,7 +2,7 @@
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
 import type { ISelectManager } from '../../interfaces/manager/select-manager';
 import type { IHandler } from '../../interfaces/handler/handler';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ISelectStore } from '../../interfaces/store/select-store';
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Events
@@ -29,7 +29,7 @@ export class SelectManager implements ISelectManager {
   public constructor(
     @inject('EventBus') private _eventBus: EventBus,
     @injectAll('ISelectHandler') handlers: ISelectHandler[],
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ISelectStore,
   ) {
     // Получение хендлеров
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));

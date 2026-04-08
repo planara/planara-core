@@ -16,8 +16,8 @@ import type { IDisplayManager } from '../interfaces/manager/display-manager';
 import type { ISelectManager } from '../interfaces/manager/select-manager';
 import type { IToolManager } from '../interfaces/manager/tool-manager';
 import type { ISceneManager } from '../interfaces/manager/scene-manager';
-import type { IEditorStore } from '../interfaces/store/editor-store';
 import type { IController } from '../interfaces/controller/controller';
+import type { ITransformStore } from '../interfaces/store/transform-store';
 
 /**
  * Хаб для управления редактированием
@@ -31,7 +31,7 @@ export class EditorHub implements Disposable {
     @inject('IToolManager') private _toolManager: IToolManager,
     @inject('ISceneManager') private _sceneManager: ISceneManager,
     @inject('Renderer') private _renderer: Renderer,
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ITransformStore,
     @inject('IController') private _controller: IController,
   ) {
     this.setSelectMode(SelectMode.Mesh);

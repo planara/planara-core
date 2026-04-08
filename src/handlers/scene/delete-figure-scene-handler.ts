@@ -7,7 +7,7 @@ import type { IMeshApi } from '../../interfaces/api/mesh-api';
 import { SceneMode } from '@planara/types';
 // IOC
 import { inject, injectable } from 'tsyringe';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ISelectStore } from '../../interfaces/store/select-store';
 // Helpers
 import { isMesh } from '../../utils/helpers';
 
@@ -26,7 +26,7 @@ export class DeleteFigureSceneHandler implements ISceneHandler {
 
   public constructor(
     @inject('IMeshApi') private _api: IMeshApi,
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ISelectStore,
   ) {}
 
   public handle(): void {

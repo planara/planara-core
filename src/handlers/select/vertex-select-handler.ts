@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { inject, injectable } from 'tsyringe';
 // Interfaces
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ISelectStore } from '../../interfaces/store/select-store';
 import type { ICameraApi } from '../../interfaces/api/camera-api';
 import type { ISceneApi } from '../../interfaces/api/scene-api';
 import type { IRaycastApi } from '../../interfaces/api/raycast-api';
@@ -26,7 +26,9 @@ import { findParentMesh } from '../../utils/helpers';
  * Управляет сценой через payload события рендерера.
  * Обрабатывает hover и click.
  * Меняет цвет вершины конкретной модели из payload, в случае null возвращает исходное состояние.
+ *
  * @internal
+ * @class
  */
 @injectable()
 export class VertexSelectHandler implements ISelectHandler {
@@ -51,7 +53,7 @@ export class VertexSelectHandler implements ISelectHandler {
     @inject('ICameraApi') private _cameraApi: ICameraApi,
     @inject('ISceneApi') private _sceneApi: ISceneApi,
     @inject('IRaycastApi') private _raycastApi: IRaycastApi,
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ISelectStore,
   ) {
     // Устанавливаем слой отображения линий для камеры
     this._cameraApi.enableCameraLayer(OVERLAY_LAYER);

@@ -1,7 +1,9 @@
 // Core
 import * as THREE from 'three';
 // Interfaces
-import type { IEditorStore } from '../interfaces/store/editor-store';
+import type { IDisplayStore } from '../interfaces/store/display-store';
+import type { ISelectStore } from '../interfaces/store/select-store';
+import type { IToolStore } from '../interfaces/store/tool-store';
 // IOC
 import { injectable } from 'tsyringe';
 // Store
@@ -15,7 +17,7 @@ import { toFigureTransform } from '../utils/helpers';
 
 /** Store для всего редактора. */
 @injectable()
-export class EditorStore implements IEditorStore {
+export class EditorStore implements IDisplayStore, ISelectStore, IToolStore {
   /** Текущий режим выборки. */
   private _selectMode: SelectMode = SelectMode.Mesh;
 
