@@ -3,7 +3,7 @@ import 'reflect-metadata';
 // Renderers
 export * from './core/renderer';
 // Controllers
-export * from './interfaces/controllers/controller';
+export * from './interfaces/controller/controller';
 // Loaders
 export * from './loaders/obj-loader';
 // Hub

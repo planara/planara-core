@@ -1,14 +1,10 @@
-## Downloads
-
-[![npm downloads](https://img.shields.io/npm/dm/@planara/core.svg)](https://www.npmjs.com/package/@planara/core)
-[![npm total downloads](https://img.shields.io/npm/dt/@planara/core.svg)](https://www.npmjs.com/package/@planara/core)
-
-## Badges
-
 ![build](https://github.com/planara/planara-core/actions/workflows/build.yml/badge.svg)
 ![deploy](https://github.com/planara/planara-core/actions/workflows/deploy.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+
+[![npm downloads](https://img.shields.io/npm/dm/@planara/core.svg)](https://www.npmjs.com/package/@planara/core)
+[![npm total downloads](https://img.shields.io/npm/dt/@planara/core.svg)](https://www.npmjs.com/package/@planara/core)
 
 ## Planara Core
 

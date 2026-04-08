@@ -1,0 +1,39 @@
+// IOC
+import { inject, injectable } from 'tsyringe';
+// Interfaces
+import type { IPolicy } from '../interfaces/policy';
+// Types
+import { DEFAULT_TOOL_RULES, type ToolType } from '@planara/types';
+import { ResponseType } from '../types/response/response-type';
+// Errors
+import { PolicyError } from '../errors/policy-error';
+// Store
+import type { IEditorStore } from '../interfaces/store/editor-store';
+
+/**
+ * Политика управления инструментами.
+ *
+ * @remarks
+ * Используется для контроллирования доступности инструментами в зависимости от выбранного режима редактирования.
+ *
+ * @public
+ * @class
+ */
+@injectable()
+export class ToolPolicy implements IPolicy {
+  public constructor(@inject('IEditorStore') private _store: IEditorStore) {}
+
+  public check(tool: ToolType): void {
+    const selection = this._store.getSelectMode();
+
+    const allowed = DEFAULT_TOOL_RULES[selection].includes(tool);
+
+    if (!allowed) {
+      throw new PolicyError(
+        ResponseType.ToolNotAllowed,
+        `Tool ${tool} is not allowed`,
+        'TOOL_NOT_ALLOWED',
+      );
+    }
+  }
+}

@@ -42,22 +42,14 @@ import type { IToolManager } from '../interfaces/manager/tool-manager';
 import type { IToolHandler } from '../interfaces/handler/tool-handler';
 import type { ISceneManager } from '../interfaces/manager/scene-manager';
 import type { ISceneHandler } from '../interfaces/handler/scene-handler';
-import type { IRuntimeModule } from '../interfaces/module/runtime-module';
-import type { IUpdatableModule } from '../interfaces/module/updatable-module';
-import type { IRenderableModule } from '../interfaces/module/renderable-module';
 import type { IMeshApi } from '../interfaces/api/mesh-api';
 import type { IRaycastApi } from '../interfaces/api/raycast-api';
 import type { ITransformApi } from '../interfaces/api/transform-api';
 import type { ICameraApi } from '../interfaces/api/camera-api';
 import type { IDomApi } from '../interfaces/api/dom-api';
 import type { ISceneApi } from '../interfaces/api/scene-api';
-import type { IRenderable } from '../interfaces/api/renderer/renderable';
-import type { IRendererCameraAccess } from '../interfaces/api/renderer/renderer-camera-access';
-import type { IRendererAccess } from '../interfaces/api/renderer/renderer-access';
-import type { IRendererDomAccess } from '../interfaces/api/renderer/renderer-dom-access';
-import type { IRendererSceneAccess } from '../interfaces/api/renderer/renderer-scene-access';
 import type { IControlsStateApi } from '../interfaces/api/controls-state-api';
-import type { IController } from '../interfaces/controllers/controller';
+import type { IController } from '../interfaces/controller/controller';
 // Hub
 import { EditorHub } from '../hub/editor-hub';
 // Event bus
@@ -65,6 +57,8 @@ import { EventBus } from '../events/event-bus';
 // Store
 import { EditorStore } from '../store';
 import type { IEditorStore } from '../interfaces/store/editor-store';
+// Policies
+import { ToolPolicy } from '../policy/tool-policy';
 
 let isContainerInitialized = false;
 const container = globalContainer.createChildContainer();
@@ -88,6 +82,10 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
   container.register('IRendererCameraAccess', { useToken: 'Renderer' });
   container.register('IRendererDomAccess', { useToken: 'Renderer' });
   container.register('IRendererSceneAccess', { useToken: 'Renderer' });
+
+  // Policies
+
+  container.registerSingleton('ToolPolicy', ToolPolicy);
 
   // API
   container.registerSingleton<IMeshApi>('IMeshApi', MeshApi);

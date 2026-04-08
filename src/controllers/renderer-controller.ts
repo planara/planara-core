@@ -1,7 +1,7 @@
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Interfaces
-import type { IController } from '../interfaces/controllers/controller';
+import type { IController } from '../interfaces/controller/controller';
 import type { IRenderable } from '../interfaces/api/renderer/renderable';
 import type { IRuntimeModule } from '../interfaces/module/runtime-module';
 import type { IRenderableModule } from '../interfaces/module/renderable-module';

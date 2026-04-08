@@ -17,7 +17,7 @@ import type { ISelectManager } from '../interfaces/manager/select-manager';
 import type { IToolManager } from '../interfaces/manager/tool-manager';
 import type { ISceneManager } from '../interfaces/manager/scene-manager';
 import type { IEditorStore } from '../interfaces/store/editor-store';
-import type { IController } from '../interfaces/controllers/controller';
+import type { IController } from '../interfaces/controller/controller';
 
 /**
  * Хаб для управления редактированием
