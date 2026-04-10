@@ -17,7 +17,7 @@ export default defineConfig({
     }),
   ],
   build: {
-    minify: false,
+    minify: true,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'PlanaraCore',
