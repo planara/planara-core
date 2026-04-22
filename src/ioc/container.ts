@@ -34,13 +34,9 @@ import { EdgeSelectHandler } from '../handlers/select/edge-select-handler';
 import { AddFigureSceneHandler } from '../handlers/scene/add-figure-scene-handler';
 import { DeleteFigureSceneHandler } from '../handlers/scene/delete-figure-scene-handler';
 // Interfaces
-import type { IDisplayManager } from '../interfaces/manager/display-manager';
 import type { IDisplayHandler } from '../interfaces/handler/display-handler';
-import type { ISelectManager } from '../interfaces/manager/select-manager';
 import type { ISelectHandler } from '../interfaces/handler/select-handler';
-import type { IToolManager } from '../interfaces/manager/tool-manager';
 import type { IToolHandler } from '../interfaces/handler/tool-handler';
-import type { ISceneManager } from '../interfaces/manager/scene-manager';
 import type { ISceneHandler } from '../interfaces/handler/scene-handler';
 import type { IMeshApi } from '../interfaces/api/mesh-api';
 import type { IRaycastApi } from '../interfaces/api/raycast-api';
