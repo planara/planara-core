@@ -50,6 +50,8 @@ import type { IDomApi } from '../interfaces/api/dom-api';
 import type { ISceneApi } from '../interfaces/api/scene-api';
 import type { IControlsStateApi } from '../interfaces/api/controls-state-api';
 import type { IController } from '../interfaces/controller/controller';
+import type { IMiddleware } from '../interfaces/middleware';
+import type { IMediator } from '../interfaces/mediator';
 // Hub
 import { EditorHub } from '../hub/editor-hub';
 // Event bus
@@ -58,6 +60,10 @@ import { EventBus } from '../events/event-bus';
 import { EditorStore } from '../store';
 // Policies
 import { ToolPolicy } from '../policy/tool-policy';
+// Middlewares
+import { ExceptionMiddleware } from '../middlewares/exception-middleware';
+// Mediator
+import { Mediator } from '../mediator';
 
 let isContainerInitialized = false;
 const container = globalContainer.createChildContainer();
@@ -119,10 +125,27 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
   container.registerSingleton<ISceneHandler>('ISceneHandler', DeleteFigureSceneHandler);
 
   // Managers
-  container.registerSingleton<IDisplayManager>('IDisplayManager', DisplayManager);
-  container.registerSingleton<ISelectManager>('ISelectManager', SelectManager);
-  container.registerSingleton<IToolManager>('IToolManager', ToolManager);
-  container.registerSingleton<ISceneManager>('ISceneManager', SceneManager);
+  container.registerSingleton('DisplayManager', DisplayManager);
+  container.register('IDisplayManager', { useToken: 'DisplayManager' });
+  container.register('IManager', { useToken: 'DisplayManager' });
+
+  container.registerSingleton('SelectManager', SelectManager);
+  container.register('ISelectManager', { useToken: 'SelectManager' });
+  container.register('IManager', { useToken: 'SelectManager' });
+
+  container.registerSingleton('ToolManager', ToolManager);
+  container.register('IToolManager', { useToken: 'ToolManager' });
+  container.register('IManager', { useToken: 'ToolManager' });
+
+  container.registerSingleton('SceneManager', SceneManager);
+  container.register('ISceneManager', { useToken: 'SceneManager' });
+  container.register('IManager', { useToken: 'SceneManager' });
+
+  // Middlewares
+  container.registerSingleton<IMiddleware>('IMiddleware', ExceptionMiddleware);
+
+  // Mediator
+  container.registerSingleton<IMediator>('IMediator', Mediator);
 
   // Hub
   container.registerSingleton('EditorHub', EditorHub);

@@ -12,6 +12,7 @@ import type { EditorEvents } from '../../events/editor-events';
 import { SelectEventType } from '../../types/event/select-event-type';
 // Types
 import { SelectMode } from '@planara/types';
+import { FeatureType } from '../../types/feature/feature-type';
 
 /**
  * Менеджер, который управляет режимами выборки.
@@ -25,6 +26,9 @@ export class SelectManager implements ISelectManager {
 
   /** Хендлеры, которые управляют выборкой */
   private readonly _handlers: Map<SelectMode, IHandler>;
+
+  /** Тип фичи, за которую отвечает менеджер. */
+  public type: FeatureType = FeatureType.Select;
 
   public constructor(
     @inject('EventBus') private _eventBus: EventBus,

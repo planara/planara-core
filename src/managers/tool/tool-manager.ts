@@ -10,6 +10,7 @@ import type { IPolicy } from '../../interfaces/policy';
 import { ToolType } from '@planara/types';
 // Policy
 import { usePolicy } from '../../decorators/use-policy';
+import { FeatureType } from '../../types/feature/feature-type';
 
 @injectable()
 export class ToolManager implements IToolManager {
@@ -21,6 +22,9 @@ export class ToolManager implements IToolManager {
 
   /** Событие обновления выбора объекта */
   private readonly _unsubSelected?: () => void;
+
+  /** Тип фичи, за которую отвечает менеджер. */
+  public type: FeatureType = FeatureType.Tool;
 
   public constructor(
     @injectAll('IToolHandler') handlers: IToolHandler[],

@@ -2,10 +2,10 @@
  * Enum типов ответа от менеджеров и политик.
  *
  * @remarks
- * Используется в `Response.type`.
+ * Используется в `IResponse.type`.
  *
  * @public
- * @enum {string}
+ * @enum
  */
 export enum ResponseType {
   /** Действие заблокировано, инструмент недоступен */
@@ -16,4 +16,6 @@ export enum ResponseType {
 
   /** Действие не выполнено, потому что нет изменений */
   NoChange = 'NO_CHANGE',
+
+  Error = 'ERROR',
 }

@@ -2,7 +2,8 @@ import type { IManager } from './manager';
 
 /**
  * Маркерный интерфейс для менеджера отображения.
- * @public
+ *
+ * @internal
  * @interface
  */
 export interface IDisplayManager extends IManager {}

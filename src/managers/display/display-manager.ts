@@ -7,6 +7,7 @@ import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
 import type { IDisplayStore } from '../../interfaces/store/display-store';
 // Types
 import { DisplayMode } from '@planara/types';
+import { FeatureType } from '../../types/feature/feature-type';
 
 /**
  * Менеджер для управления отображением
@@ -19,6 +20,9 @@ export class DisplayManager implements IDisplayManager {
 
   /** Хендлеры, которые управляют отображением */
   private readonly _handlers: Map<DisplayMode, IHandler>;
+
+  /** Тип фичи, за которую отвечает менеджер. */
+  public type: FeatureType = FeatureType.Display;
 
   public constructor(
     @injectAll('IDisplayHandler') handlers: IDisplayHandler[],

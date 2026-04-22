@@ -6,6 +6,7 @@ import type { ISceneManager } from '../../interfaces/manager/scene-manager';
 import type { ISceneHandler } from '../../interfaces/handler/scene-handler';
 // Types
 import { type FigureType, SceneMode } from '@planara/types';
+import { FeatureType } from '../../types/feature/feature-type';
 
 /**
  * Менеджер для управления сценой
@@ -18,6 +19,9 @@ export class SceneManager implements ISceneManager {
 
   /** Хендлеры, которые управляют отображением */
   private readonly _handlers: Map<SceneMode, IHandler>;
+
+  /** Тип фичи, за которую отвечает менеджер. */
+  public type: FeatureType = FeatureType.Scene;
 
   public constructor(@injectAll('ISceneHandler') handlers: ISceneHandler[]) {
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));
