@@ -2,7 +2,7 @@
 import type { ISelectHandler } from '../../interfaces/handler/select-handler';
 import type { ISelectManager } from '../../interfaces/manager/select-manager';
 import type { IHandler } from '../../interfaces/handler/handler';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ISelectStore } from '../../interfaces/store/select-store';
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Events
@@ -12,6 +12,7 @@ import type { EditorEvents } from '../../events/editor-events';
 import { SelectEventType } from '../../types/event/select-event-type';
 // Types
 import { SelectMode } from '@planara/types';
+import { FeatureType } from '../../types/feature/feature-type';
 
 /**
  * Менеджер, который управляет режимами выборки.
@@ -26,10 +27,13 @@ export class SelectManager implements ISelectManager {
   /** Хендлеры, которые управляют выборкой */
   private readonly _handlers: Map<SelectMode, IHandler>;
 
+  /** Тип фичи, за которую отвечает менеджер. */
+  public type: FeatureType = FeatureType.Select;
+
   public constructor(
     @inject('EventBus') private _eventBus: EventBus,
     @injectAll('ISelectHandler') handlers: ISelectHandler[],
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ISelectStore,
   ) {
     // Получение хендлеров
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));

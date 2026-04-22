@@ -13,9 +13,11 @@ export default defineConfig({
     dts({
       insertTypesEntry: true,
       tsconfigPath: resolve(__dirname, 'tsconfig.json'),
+      exclude: ['vite.config.ts'],
     }),
   ],
   build: {
+    minify: true,
     lib: {
       entry: resolve(__dirname, 'src/index.ts'),
       name: 'PlanaraCore',

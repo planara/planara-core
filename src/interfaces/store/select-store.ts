@@ -1,20 +1,25 @@
 // Core
 import * as THREE from 'three';
 // Types
-import type { DisplayMode, FigureTransform, SelectMode, ToolType } from '@planara/types';
+import type { FigureTransform, SelectMode } from '@planara/types';
+// Listeners
 import type { SelectedListener } from '../../types/listener/selected-listener';
-import type { TransformListener } from '../../types/listener/transform-listener';
 
-/** @public */
-export interface IEditorStore {
+/**
+ * Интерфейс store для менеджеров и хендлеров, которые позволяют работать с Select фичей,
+ * необходим для корректного взаимодействия между группами фичей.
+ *
+ * Можно получить:
+ * - режим выборки
+ * - выбранный объект
+ * - подписаться на изменение объекта
+ *
+ * @public
+ * @interface
+ */
+export interface ISelectStore {
   /** Возвращает текущий режим выбора. */
   getSelectMode(): SelectMode;
-
-  /** Возвращает текущий активный инструмент. */
-  getToolType(): ToolType;
-
-  /** Возвращает текущий режим отображения. */
-  getDisplayMode(): DisplayMode;
 
   /**
    * Устанавливает режим выбора.
@@ -23,22 +28,10 @@ export interface IEditorStore {
   setSelectMode(mode: SelectMode): void;
 
   /**
-   * Устанавливает активный инструмент.
-   * @param toolType - Тип инструмента (Translate/Rotate/Scale и т.п.).
-   */
-  setToolType(toolType: ToolType): void;
-
-  /**
-   * Устанавливает режим отображения.
-   * @param mode - Режим отображения (зависит от твоего домена).
-   */
-  setDisplayMode(mode: DisplayMode): void;
-
-  /**
    * Возвращает текущий выбранный объект сцены.
    * @remarks
    * Предполагается, что до вызова этого метода уже был
-   * вызван {@link IEditorStore.setSelectedObject}. Иначе результат не определён.
+   * вызван {@link ISelectStore.setSelectedObject}. Иначе результат не определён.
    */
   getSelectedObject(): THREE.Object3D | null;
 
@@ -56,10 +49,4 @@ export interface IEditorStore {
    * @param cb - Callback, получающий текущий выбранный объект (`THREE.Object3D | null`).
    */
   onSelectedObjectChange(cb: SelectedListener): () => void;
-
-  /** Подписывает слушателя на изменения трансформации выбранного объекта. */
-  onSelectedTransformChange(cb: TransformListener): () => void;
-
-  /** Уведомляет всех подписчиков о том, что трансформация выбранного объекта изменилась. */
-  notifySelectedTransformChange(): void;
 }

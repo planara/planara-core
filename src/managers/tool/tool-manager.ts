@@ -4,11 +4,13 @@ import { inject, injectable, injectAll } from 'tsyringe';
 import type { IHandler } from '../../interfaces/handler/handler';
 import type { IToolHandler } from '../../interfaces/handler/tool-handler';
 import type { IToolManager } from '../../interfaces/manager/tool-manager';
-import type { IEditorStore } from '../../interfaces/store/editor-store';
+import type { ITransformStore } from '../../interfaces/store/transform-store';
+import type { IPolicy } from '../../interfaces/policy';
 // Types
 import { ToolType } from '@planara/types';
-import type { IToolAvailabilityPolicy } from '../../interfaces/policy/tool-availability-policy';
-import { ToolAvailabilityPolicy } from '../../policy/tool-availability-policy';
+// Policy
+import { usePolicy } from '../../decorators/use-policy';
+import { FeatureType } from '../../types/feature/feature-type';
 
 @injectable()
 export class ToolManager implements IToolManager {
@@ -21,12 +23,13 @@ export class ToolManager implements IToolManager {
   /** Событие обновления выбора объекта */
   private readonly _unsubSelected?: () => void;
 
-  /** Политика доступности инструментов */
-  private readonly _policy!: IToolAvailabilityPolicy;
+  /** Тип фичи, за которую отвечает менеджер. */
+  public type: FeatureType = FeatureType.Tool;
 
   public constructor(
     @injectAll('IToolHandler') handlers: IToolHandler[],
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('EditorStore') private _store: ITransformStore,
+    @inject('ToolPolicy') private _policy: IPolicy,
   ) {
     // Получение хендлеров
     this._handlers = new Map(handlers.map((h) => [h.mode, h]));
@@ -35,18 +38,11 @@ export class ToolManager implements IToolManager {
     this._unsubSelected = this._store.onSelectedObjectChange(() => {
       this._handlers.get(this._currentTool)?.handle();
     });
-
-    // Создание политики
-    this._policy = new ToolAvailabilityPolicy();
   }
 
+  @usePolicy((self) => self._policy)
   public manage(tool: ToolType): void {
     if (this._currentTool === tool) return;
-
-    // Получение текущего режима выборки
-    const selection = this._store.getSelectMode();
-    // Проверка разрешения использования инструмента согласно правилам политики
-    if (!this._policy.isToolEnabled(tool, selection)) return;
 
     // Отключение предыдущего инструмента
     this._handlers.get(this._currentTool)?.rollback();

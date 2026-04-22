@@ -2,52 +2,93 @@
 import * as THREE from 'three';
 
 /**
- * Мини-API для взаимодействия со сценой и слоями камеры.
+ * Высокоуровневое API для управления сценой.
  *
  * @remarks
- * Абстрагирует прямой доступ к `THREE.Scene`/`THREE.Camera`, позволяя
- * хендлерам добавлять/удалять объекты и управлять видимостью слоёв.
- * Рекомендуется использовать совместно с константами слоёв
- * (например, `MESH_LAYER`, `LINE_LAYER`, `OVERLAY_LAYER`).
+ * Предоставляет базовые операции для работы со сценой Three.js:
+ * - получение сцены
+ * - добавление объектов на сцену
+ * - удаление объектов со сцены
  *
- * @example
- * // Добавить оверлей на слой подсветок и убедиться, что камера его видит:
- * sceneApi.add(overlayLine, OVERLAY_LAYER);
- * sceneApi.enableCameraLayer(OVERLAY_LAYER);
+ * Используется модулями и хендлерами, которым нужно управлять
+ * объектами на сцене (например, добавление мешей, света, вспомогательных элементов).
+ *
+ * @see {@link SceneApi} - реализация этого интерфейса
+ * @see {@link IRendererSceneAccess} - низкоуровневый доступ к сцене (internal)
+ *
+ * @internal
+ * @interface
  */
 export interface ISceneApi {
   /**
-   * Добавляет объект в сцену.
+   * Возвращает сцену рендерера.
    *
-   * @param obj - Объект для добавления (`THREE.Object3D`).
-   * @param layer - (Опц.) Слой, который следует выставить объекту перед добавлением.
-   *
-   * @remarks
-   * Если `layer` указан, реализация должна вызвать `obj.layers.set(layer)` или
-   * эквивалентную логику, прежде чем поместить объект в сцену.
-   */
-  addObject(obj: THREE.Object3D, layer?: number): void;
-
-  /**
-   * Удаляет объект из сцены.
-   *
-   * @param obj - Объект для удаления.
-   *
-   * @remarks
-   * Реализация может дополнительно освобождать ресурсы (материалы, геометрию)
-   * по соглашению, но это не обязательно для интерфейса.
-   */
-  removeObject(obj: THREE.Object3D): void;
-
-  /**
-   * Включает указанный слой для активной камеры,
-   * чтобы объекты на этом слое были видимы.
-   *
-   * @param layer - Номер слоя, который требуется включить.
+   * @returns THREE.Scene - сцена Three.js
    *
    * @example
-   * // Показать оверлеи подсветки:
-   * sceneApi.enableCameraLayer(OVERLAY_LAYER);
+   * ```typescript
+   * const scene = sceneApi.getScene();
+   * ```
+   *
+   * @internal
+   * @method
    */
-  enableCameraLayer(layer: number): void;
+  getScene(): THREE.Scene;
+
+  /**
+   * Добавляет объект на сцену.
+   *
+   * @param object - объект Three.js для добавления (Mesh, Light, Group и т.д.)
+   *
+   * @remarks
+   * Объект будет виден на сцене после вызова этого метода.
+   * Если объект уже добавлен, он не будет продублирован.
+   *
+   * @example
+   * ```typescript
+   * const mesh = new THREE.Mesh(geometry, material);
+   * sceneApi.addToScene(mesh);
+   * ```
+   *
+   * @internal
+   * @method
+   */
+  addToScene(object: THREE.Object3D): void;
+
+  /**
+   * Удаляет объект со сцены.
+   *
+   * @param object - объект Three.js для удаления
+   *
+   * @remarks
+   * Объект перестаёт отображаться на сцене.
+   *
+   * @example
+   * ```typescript
+   * sceneApi.removeFromScene(mesh);
+   * ```
+   *
+   * @internal
+   * @method
+   */
+  removeFromScene(object: THREE.Object3D): void;
+
+  /**
+   * Добавляет объект в сцену и (опционально) выставляет ему слой.
+   *
+   * @param object - Объект, который нужно добавить в сцену.
+   * @param layer - (Опц.) Номер слоя, который следует установить объекту перед добавлением.
+   *
+   * @remarks
+   * Если рендерер уже диспоузнут (scene отсутствует), метод тихо завершится.
+   * Слой задаётся через `obj.layers.set(layer)`, после чего объект добавляется в `this.scene`.
+   *
+   * @example
+   * // Добавить оверлей на слой подсветок:
+   * add(overlayLine, OVERLAY_LAYER);
+   *
+   * @internal
+   * @method
+   */
+  addObject(object: THREE.Object3D, layer?: number): void;
 }

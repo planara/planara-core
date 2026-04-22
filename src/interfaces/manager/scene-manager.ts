@@ -3,6 +3,8 @@ import type { IManager } from './manager';
 
 /**
  * Маркерный интерфейс для менеджера сцены.
- * @public
+ *
+ * @internal
+ * @interface
  */
 export interface ISceneManager extends IManager {}

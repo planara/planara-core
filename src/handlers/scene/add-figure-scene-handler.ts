@@ -16,7 +16,9 @@ import { makeLineSegments, makeVertexPoints } from '../../utils/helpers';
 /**
  * Хендлер для добавления базовых фигур на сцену.
  * Управляет сценой через RendererApi.
+ *
  * @internal
+ * @class
  */
 @injectable()
 export class AddFigureSceneHandler implements ISceneHandler {
@@ -26,7 +28,7 @@ export class AddFigureSceneHandler implements ISceneHandler {
   /** Последняя добавленная фигура, нужно для отката через `ctrl + z`. */
   private _lastAddedMesh: THREE.Mesh | null = null;
 
-  public constructor(@inject('RendererApi') private _api: IMeshApi) {}
+  public constructor(@inject('IMeshApi') private _api: IMeshApi) {}
 
   /** Добавление базовых фигур на сцену, которые приписаны в `FigureType`. */
   public handle(figure: FigureType): void {
@@ -42,11 +44,16 @@ export class AddFigureSceneHandler implements ISceneHandler {
 
     mesh.layers.enable(MESH_LAYER);
 
-    // внешние рёбра
-    const line = makeLineSegments(mesh.geometry);
+    const renderGeometry = geom.index ? geom.toNonIndexed() : geom;
+
+    // внешние ребра
+    const line = makeLineSegments(renderGeometry);
+    line.layers.enable(MESH_LAYER);
     mesh.add(line);
 
-    const points = makeVertexPoints(mesh.geometry as THREE.BufferGeometry);
+    // вершины
+    const points = makeVertexPoints(renderGeometry);
+    points.layers.enable(MESH_LAYER);
     mesh.add(points);
 
     // Добавление фигуры на сцену

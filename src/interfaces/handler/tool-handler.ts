@@ -9,6 +9,7 @@ import type { ToolType } from '@planara/types';
  *
  * Расширяет {@link IHandler} и добавляет поле `mode`
  * @internal
+ * @interface
  */
 export interface IToolHandler extends IHandler {
   /** Инструмент, за который отвечает хендлер */

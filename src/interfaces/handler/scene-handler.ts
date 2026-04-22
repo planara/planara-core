@@ -9,6 +9,7 @@ import type { SceneMode } from '@planara/types';
  *
  * Расширяет {@link IHandler} и добавляет поле `mode`
  * @internal
+ * @interface
  */
 export interface ISceneHandler extends IHandler {
   /** Режим редактирования сцены, за который отвечает хендлер */

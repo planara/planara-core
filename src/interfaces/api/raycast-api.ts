@@ -8,9 +8,11 @@ import type { SelectMode } from '@planara/types';
  * определяет, какие объекты участвуют в пиккинге и какие пороги
  * используются:
  * Настройка режима может меняться на лету, перед любым вызовом `raycaster.intersectObjects`.
+ *
  * @internal
+ * @interface
  */
-export interface IRaycastAPI {
+export interface IRaycastApi {
   /**
    * Устанавливает режим работы Raycaster и связанные с ним таргеты/пороговые параметры.
    *
@@ -19,6 +21,9 @@ export interface IRaycastAPI {
    * - `Edge`
    * - `Vertex`
    * @param mode Текущий режим выбора (`Mesh | Face | Edge | Vertex`).
+   *
+   * @internal
+   * @method
    */
   setRaycastMode(mode: SelectMode): void;
 }

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+  "tagDefinitions": [
+    { "tagName": "@class", "syntaxKind": "modifier" },
+    { "tagName": "@protected", "syntaxKind": "modifier" },
+    { "tagName": "@method", "syntaxKind": "modifier" },
+    { "tagName": "@member", "syntaxKind": "modifier" },
+    { "tagName": "@constructor", "syntaxKind": "modifier" },
+    { "tagName": "@interface", "syntaxKind": "modifier" },
+    { "tagName": "@enum", "syntaxKind": "modifier" },
+    { "tagName": "@private", "syntaxKind": "modifier" },
+    { "tagName": "@type", "syntaxKind": "modifier" },
+    { "tagName": "@oublic", "syntaxKind": "modifier" }
+  ]
+}

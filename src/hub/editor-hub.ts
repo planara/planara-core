@@ -1,3 +1,5 @@
+// Core
+import type { Renderer } from '../core/renderer';
 // IOC
 import { type Disposable, inject, injectable } from 'tsyringe';
 // Types
@@ -9,13 +11,12 @@ import {
   SelectMode,
   ToolType,
 } from '@planara/types';
+import { FeatureType } from '../types/feature/feature-type';
+import type { IResponse } from '../interfaces/response';
 // Interfaces
-import type { IDisplayManager } from '../interfaces/manager/display-manager';
-import type { ISelectManager } from '../interfaces/manager/select-manager';
-import type { EditorRenderer } from '../core/editor-renderer';
-import type { IToolManager } from '../interfaces/manager/tool-manager';
-import type { ISceneManager } from '../interfaces/manager/scene-manager';
-import type { IEditorStore } from '../interfaces/store/editor-store';
+import type { IController } from '../interfaces/controller/controller';
+import type { ITransformStore } from '../interfaces/store/transform-store';
+import type { IMediator } from '../interfaces/mediator';
 
 /**
  * Хаб для управления редактированием
@@ -24,43 +25,67 @@ import type { IEditorStore } from '../interfaces/store/editor-store';
 @injectable()
 export class EditorHub implements Disposable {
   public constructor(
-    @inject('IDisplayManager') private _displayManager: IDisplayManager,
-    @inject('ISelectManager') private _selectManager: ISelectManager,
-    @inject('IToolManager') private _toolManager: IToolManager,
-    @inject('ISceneManager') private _sceneManager: ISceneManager,
-    @inject('EditorRenderer') private _renderer: EditorRenderer,
-    @inject('IEditorStore') private _store: IEditorStore,
+    @inject('Renderer') private _renderer: Renderer,
+    @inject('IMediator') private _mediator: IMediator,
+    @inject('EditorStore') private _store: ITransformStore,
+    @inject('IController') private _controller: IController,
   ) {
     this.setSelectMode(SelectMode.Mesh);
     this.setToolMode(ToolType.Translate);
   }
 
-  public setDisplayMode(mode: DisplayMode) {
-    this._displayManager.manage(mode);
+  public setDisplayMode(mode: DisplayMode): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Display,
+      payload: [mode],
+    });
   }
 
-  public setSceneMode(sceneMode: SceneMode) {
-    this._sceneManager.manage(sceneMode);
+  public setSceneMode(mode: SceneMode): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Scene,
+      payload: [mode],
+    });
   }
 
-  public setSelectMode(mode: SelectMode) {
-    this._selectManager.manage(mode);
+  public setSelectMode(mode: SelectMode): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Select,
+      payload: [mode],
+    });
   }
 
-  public setToolMode(mode: ToolType) {
-    this._toolManager.manage(mode);
+  public setToolMode(mode: ToolType): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Tool,
+      payload: [mode],
+    });
+  }
+
+  public addFigure(mode: SceneMode, figure: FigureType): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Scene,
+      payload: [mode, figure],
+    });
   }
 
   public resizeRenderer() {
     this._renderer.resize();
   }
 
-  public updateRenderer() {
-    this._renderer.loop();
+  /**
+   * Запускает редактор.
+   * Вызывается после создания хаба.
+   */
+  public start(): void {
+    this._controller.start();
   }
 
-  public addFigure(mode: SceneMode, figure: FigureType) {
-    this._sceneManager.manage(mode, figure);
+  /**
+   * Останавливает редактор.
+   */
+  public stop(): void {
+    this._controller.stop();
   }
 
   public getSelectionStats(): FigureTransform | null {
@@ -83,8 +108,6 @@ export class EditorHub implements Disposable {
   }
 
   public dispose(): Promise<void> | void {
-    this._displayManager.dispose();
-    this._selectManager.dispose();
-    this._renderer.dispose();
+    this._mediator.dispose();
   }
 }

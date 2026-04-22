@@ -9,6 +9,7 @@ import type { SelectMode } from '@planara/types';
  *
  * Расширяет {@link IHandler} и добавляет поле `mode`
  * @internal
+ * @interface
  */
 export interface ISelectHandler extends IHandler {
   /** Режим выборки, за который отвечает хендлер */
