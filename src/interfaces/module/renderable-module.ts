@@ -1,6 +1,6 @@
 // Interfaces
 import type { IRuntimeModule } from './runtime-module';
-import type { IRenderable } from '../api/renderer/renderable';
+import type { IRenderable } from '@/interfaces/api/renderer';
 
 /**
  * Интерфейс для модулей, требующих кастомного рендеринга.

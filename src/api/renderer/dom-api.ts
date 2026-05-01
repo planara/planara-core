@@ -1,8 +1,8 @@
 // Core
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IDomApi } from '../../interfaces/api/dom-api';
-import type { IRendererDomAccess } from '../../interfaces/api/renderer/renderer-dom-access';
+import type { IDomApi } from '@/interfaces/api';
+import type { IRendererDomAccess } from '@/interfaces/api/renderer';
 
 /**
  * Реализация API для доступа к DOM-элементам рендерера.

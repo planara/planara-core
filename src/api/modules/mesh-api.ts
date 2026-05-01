@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IMeshApi } from '../../interfaces/api/mesh-api';
+import type { IMeshApi } from '@/interfaces/api';
 
 /**
  * API для управления мешами (фигурами) на сцене.

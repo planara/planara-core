@@ -3,11 +3,17 @@ import * as THREE from 'three';
 // IOC
 import { type Disposable, inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IRendererCameraAccess } from '../interfaces/api/renderer/renderer-camera-access';
-import type { IRendererAccess } from '../interfaces/api/renderer/renderer-access';
-import type { IRendererDomAccess } from '../interfaces/api/renderer/renderer-dom-access';
-import type { IRendererSceneAccess } from '../interfaces/api/renderer/renderer-scene-access';
-import type { IRenderable } from '../interfaces/api/renderer/renderable';
+import type {
+  IRendererCameraAccess,
+  IRendererAccess,
+  IRendererDomAccess,
+  IRendererSceneAccess,
+  IRenderable,
+} from '@/interfaces/api/renderer';
+// Types
+import type { RendererConfig } from '@planara/types';
+// Helpers
+import { markAsNotExportable } from '@/utils';
 
 /**
  * Базовый класс рендерера для работы с WebGL через Three.js.
@@ -79,50 +85,86 @@ export class Renderer
    * Конструктор рендерера.
    *
    * @param _canvas - HTMLCanvasElement для рендеринга
+   * @param _config - Конфиг для настройки рендерера
    *
    * @remarks
-   * Инициализирует сцену с тёмным фоном, перспективную камеру
-   * (45° FOV, near 0.1, far 1000) и базовое освещение:
-   * - `AmbientLight` (0xffffff, 0.5) — общий свет
-   * - `DirectionalLight` (0xffffff, 1) — направленный свет
+   * Инициализирует сцену, камеру, WebGLRenderer и базовое освещение
+   * на основе переданного `RendererConfig`.
    *
-   * @example
-   * ```typescript
-   * const renderer = new Renderer(canvas);
-   * ```
+   * По умолчанию используется тёмный фон, перспективная камера
+   * и два источника света: AmbientLight и DirectionalLight.
    *
    * @public
    * @constructor
    */
-  public constructor(@inject('Canvas') _canvas: HTMLCanvasElement) {
+  public constructor(
+    @inject('Canvas') _canvas: HTMLCanvasElement,
+    @inject('RendererConfig') private readonly _config: RendererConfig,
+  ) {
     // Canvas из html верстки
     this.canvas = _canvas;
 
     // Добавление сцены
     this.scene = new THREE.Scene();
     // Настройка фона
-    this.scene.background = new THREE.Color(0x1a1a1a);
+    if (this._config.background.transparent) {
+      this.scene.background = null;
+    } else {
+      this.scene.background = new THREE.Color(this._config.background.color);
+    }
 
     // Добавление и настройка камеры
     this.camera = new THREE.PerspectiveCamera(
-      45,
+      this._config.camera.fov,
       this.canvas.clientWidth / this.canvas.clientHeight,
-      0.1,
-      1000,
+      this._config.camera.near,
+      this._config.camera.far,
     );
-    this.camera.position.set(1, 1, 7);
+    this.camera.position.set(
+      this._config.camera.position.x,
+      this._config.camera.position.y,
+      this._config.camera.position.z,
+    );
 
     // Рендерер three.js
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
+    this.renderer = new THREE.WebGLRenderer({
+      canvas: this.canvas,
+      antialias: this._config.renderer.antialias,
+      alpha: this._config.background.transparent || this._config.renderer.alpha,
+    });
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 
-    // Освещение
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // общий свет
-    this.scene.add(ambientLight);
+    if (this._config.background.transparent) {
+      this.renderer.setClearAlpha(0);
+    } else {
+      this.renderer.setClearColor(this._config.background.color, 1);
+    }
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 10, 7);
-    this.scene.add(directionalLight);
+    // Освещение
+    if (this._config.lights.ambient.enabled) {
+      const ambientLight = new THREE.AmbientLight(
+        this._config.lights.ambient.color,
+        this._config.lights.ambient.intensity,
+      );
+
+      // общий свет
+      this.scene.add(markAsNotExportable(ambientLight));
+    }
+
+    if (this._config.lights.directional.enabled) {
+      const directionalLight = new THREE.DirectionalLight(
+        this._config.lights.directional.color,
+        this._config.lights.directional.intensity,
+      );
+
+      directionalLight.position.set(
+        this._config.lights.directional.position.x,
+        this._config.lights.directional.position.y,
+        this._config.lights.directional.position.z,
+      );
+
+      this.scene.add(markAsNotExportable(directionalLight));
+    }
   }
 
   /**
@@ -136,7 +178,7 @@ export class Renderer
    * window.addEventListener('resize', () => renderer.resize());
    * ```
    *
-   * @oublic
+   * @public
    * @method
    */
   public resize() {

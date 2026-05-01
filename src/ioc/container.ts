@@ -2,73 +2,93 @@
 import 'reflect-metadata';
 import { container as globalContainer, type DependencyContainer } from 'tsyringe';
 // Core
-import { Renderer } from '../core/renderer';
-import { RendererController } from '../controllers/renderer-controller';
+import { Renderer } from '@/core';
+import { RendererController } from '@/controllers';
 // API
-import { MeshApi } from '../api/modules/mesh-api';
-import { RaycastApi } from '../api/modules/raycast-api';
-import { TransformApi } from '../api/modules/transform-api';
-import { CameraApi } from '../api/renderer/camera-api';
-import { DomApi } from '../api/renderer/dom-api';
-import { SceneApi } from '../api/renderer/scene-api';
-import { ControlsStateApi } from '../api/modules/controls-state-api';
+import { MeshApi, RaycastApi, TransformApi, ControlsStateApi } from '@/api/modules';
+import { CameraApi, DomApi, SceneApi } from '@/api/renderer';
 // Modules
-import { ControlsModule } from '../modules/controls-module';
-import { GizmoModule } from '../modules/gizmo-module';
-import { RaycastModule } from '../modules/raycast-module';
-import { SceneModule } from '../modules/scene-module';
+import {
+  ControlsModule,
+  GizmoModule,
+  RaycastModule,
+  SceneModule,
+  ScenePreviewModule,
+} from '@/modules';
 // Managers
-import { DisplayManager } from '../managers/display/display-manager';
-import { SelectManager } from '../managers/select/select-manager';
-import { ToolManager } from '../managers/tool/tool-manager';
-import { SceneManager } from '../managers/scene/scene-manager';
+import { DisplayManager, SelectManager, ToolManager, SceneManager } from '@/managers';
 // Handlers
-import { WireframeHandler } from '../handlers/display/wireframe-handler';
-import { MeshSelectHandler } from '../handlers/select/mesh-select-handler';
-import { FaceSelectHandler } from '../handlers/select/face-select-handler';
-import { VertexSelectHandler } from '../handlers/select/vertex-select-handler';
-import { TranslateToolHandler } from '../handlers/tool/translate-tool-handler';
-import { ScaleToolHandler } from '../handlers/tool/scale-tool-handler';
-import { RotateToolHandler } from '../handlers/tool/rotate-tool-handler';
-import { EdgeSelectHandler } from '../handlers/select/edge-select-handler';
-import { AddFigureSceneHandler } from '../handlers/scene/add-figure-scene-handler';
-import { DeleteFigureSceneHandler } from '../handlers/scene/delete-figure-scene-handler';
+import { WireframeHandler } from '@/handlers/display';
+import {
+  MeshSelectHandler,
+  FaceSelectHandler,
+  VertexSelectHandler,
+  EdgeSelectHandler,
+} from '@/handlers/select';
+import { TranslateToolHandler, ScaleToolHandler, RotateToolHandler } from '@/handlers/tool';
+import {
+  AddFigureSceneHandler,
+  DeleteFigureSceneHandler,
+  ExportSceneHandler,
+  LoadFigureSceneHandler,
+  LoadSceneHandler,
+} from '@/handlers/scene';
 // Interfaces
-import type { IDisplayHandler } from '../interfaces/handler/display-handler';
-import type { ISelectHandler } from '../interfaces/handler/select-handler';
-import type { IToolHandler } from '../interfaces/handler/tool-handler';
-import type { ISceneHandler } from '../interfaces/handler/scene-handler';
-import type { IMeshApi } from '../interfaces/api/mesh-api';
-import type { IRaycastApi } from '../interfaces/api/raycast-api';
-import type { ITransformApi } from '../interfaces/api/transform-api';
-import type { ICameraApi } from '../interfaces/api/camera-api';
-import type { IDomApi } from '../interfaces/api/dom-api';
-import type { ISceneApi } from '../interfaces/api/scene-api';
-import type { IControlsStateApi } from '../interfaces/api/controls-state-api';
-import type { IController } from '../interfaces/controller/controller';
-import type { IMiddleware } from '../interfaces/middleware';
-import type { IMediator } from '../interfaces/mediator';
+import type {
+  IDisplayHandler,
+  ISelectHandler,
+  IToolHandler,
+  ISceneHandler,
+} from '@/interfaces/handler';
+import type {
+  IMeshApi,
+  IRaycastApi,
+  ITransformApi,
+  ICameraApi,
+  IDomApi,
+  ISceneApi,
+  IControlsStateApi,
+} from '@/interfaces/api';
+import type { IController } from '@/interfaces/controller';
+import type { IMiddleware } from '@/interfaces/middleware';
+import type { IMediator } from '@/interfaces/mediator';
 // Hub
-import { EditorHub } from '../hub/editor-hub';
+import { EditorHub } from '@/hub/editor-hub';
 // Event bus
-import { EventBus } from '../events/event-bus';
+import { EventBus } from '@/events';
 // Store
-import { EditorStore } from '../store';
+import { EditorStore, ExportStore } from '@/store';
 // Policies
-import { ToolPolicy } from '../policy/tool-policy';
+import { ToolPolicy } from '@/policy';
+// Validator
+import { ObjValidator } from '@/validators';
 // Middlewares
-import { ExceptionMiddleware } from '../middlewares/exception-middleware';
+import { ExceptionMiddleware } from '@/middlewares';
 // Mediator
-import { Mediator } from '../mediator';
+import { Mediator } from '@/mediator';
+// Types
+import type { RendererConfigInput } from '@planara/types';
+// Utils
+import { mergeRendererConfig, defaultRendererConfig } from '@/utils';
+import { ViewerHub } from '@/hub/viewer-hub';
 
 let isContainerInitialized = false;
 const container = globalContainer.createChildContainer();
 
-export function createContainer(canvas: HTMLCanvasElement): DependencyContainer {
+export function createEditorContainer(
+  canvas: HTMLCanvasElement,
+  rendererConfig?: RendererConfigInput,
+): DependencyContainer {
   if (isContainerInitialized) return container;
 
   // HTML
   container.registerInstance('Canvas', canvas);
+
+  // Config
+  container.registerInstance(
+    'RendererConfig',
+    mergeRendererConfig(defaultRendererConfig, rendererConfig),
+  );
 
   // Event bus
   container.registerSingleton('EventBus', EventBus);
@@ -85,8 +105,10 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
   container.register('IRendererSceneAccess', { useToken: 'Renderer' });
 
   // Policies
-
   container.registerSingleton('ToolPolicy', ToolPolicy);
+
+  // Validators
+  container.registerSingleton('ObjValidator', ObjValidator);
 
   // API
   container.registerSingleton<IMeshApi>('IMeshApi', MeshApi);
@@ -110,15 +132,21 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
 
   // Handlers
   container.registerSingleton<IDisplayHandler>('IDisplayHandler', WireframeHandler);
+
   container.registerSingleton<ISelectHandler>('ISelectHandler', MeshSelectHandler);
   container.registerSingleton<ISelectHandler>('ISelectHandler', FaceSelectHandler);
   container.registerSingleton<ISelectHandler>('ISelectHandler', EdgeSelectHandler);
   container.registerSingleton<ISelectHandler>('ISelectHandler', VertexSelectHandler);
+
   container.registerSingleton<IToolHandler>('IToolHandler', TranslateToolHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', ScaleToolHandler);
   container.registerSingleton<IToolHandler>('IToolHandler', RotateToolHandler);
+
   container.registerSingleton<ISceneHandler>('ISceneHandler', AddFigureSceneHandler);
   container.registerSingleton<ISceneHandler>('ISceneHandler', DeleteFigureSceneHandler);
+  container.registerSingleton<ISceneHandler>('ISceneHandler', ExportSceneHandler);
+  container.registerSingleton<ISceneHandler>('ISceneHandler', LoadFigureSceneHandler);
+  container.registerSingleton<ISceneHandler>('ISceneHandler', LoadSceneHandler);
 
   // Managers
   container.registerSingleton('DisplayManager', DisplayManager);
@@ -148,6 +176,77 @@ export function createContainer(canvas: HTMLCanvasElement): DependencyContainer 
 
   // Store
   container.registerSingleton('EditorStore', EditorStore);
+  container.registerSingleton('ExportStore', ExportStore);
+
+  isContainerInitialized = true;
+
+  return container;
+}
+
+export function createViewerContainer(
+  canvas: HTMLCanvasElement,
+  rendererConfig?: RendererConfigInput,
+): DependencyContainer {
+  if (isContainerInitialized) return container;
+
+  // HTML
+  container.registerInstance('Canvas', canvas);
+
+  // Config
+  container.registerInstance(
+    'RendererConfig',
+    mergeRendererConfig(defaultRendererConfig, rendererConfig),
+  );
+
+  // Core
+  container.registerSingleton<IController>('IController', RendererController);
+
+  container.registerSingleton('Renderer', Renderer);
+
+  container.register('IRenderable', { useToken: 'Renderer' });
+  container.register('IRendererAccess', { useToken: 'Renderer' });
+  container.register('IRendererCameraAccess', { useToken: 'Renderer' });
+  container.register('IRendererDomAccess', { useToken: 'Renderer' });
+  container.register('IRendererSceneAccess', { useToken: 'Renderer' });
+
+  // Validators
+  container.registerSingleton('ObjValidator', ObjValidator);
+
+  // API
+  container.registerSingleton<IMeshApi>('IMeshApi', MeshApi);
+  container.registerSingleton<ICameraApi>('ICameraApi', CameraApi);
+  container.registerSingleton<IDomApi>('IDomApi', DomApi);
+  container.registerSingleton<ISceneApi>('ISceneApi', SceneApi);
+
+  // Modules
+  container.registerSingleton('ControlsModule', ControlsModule);
+  container.registerSingleton('SceneModule', ScenePreviewModule);
+
+  container.register('IUpdatableModule', { useToken: 'ControlsModule' });
+  container.register('IRuntimeModule', { useToken: 'SceneModule' });
+
+  // Handlers
+  container.registerSingleton<ISceneHandler>('ISceneHandler', AddFigureSceneHandler);
+  container.registerSingleton<ISceneHandler>('ISceneHandler', ExportSceneHandler);
+  container.registerSingleton<ISceneHandler>('ISceneHandler', LoadFigureSceneHandler);
+  container.registerSingleton<ISceneHandler>('ISceneHandler', LoadSceneHandler);
+
+  // Managers
+  container.registerSingleton('SceneManager', SceneManager);
+  container.register('ISceneManager', { useToken: 'SceneManager' });
+  container.register('IManager', { useToken: 'SceneManager' });
+
+  // Middlewares
+  container.registerSingleton<IMiddleware>('IMiddleware', ExceptionMiddleware);
+
+  // Mediator
+  container.registerSingleton<IMediator>('IMediator', Mediator);
+
+  // Hub
+  container.registerSingleton('ViewerHub', ViewerHub);
+
+  // Store
+  container.registerSingleton('ExportStore', ExportStore);
 
   isContainerInitialized = true;
 

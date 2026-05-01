@@ -1,7 +1,7 @@
 // Core
 import * as THREE from 'three';
 // Topics
-import { EventTopics } from './event-topics';
+import { EventTopics } from '@/events';
 
 /**
  * Типы событий редактора.

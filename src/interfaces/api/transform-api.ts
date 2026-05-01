@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 // Types
 import type { ToolType } from '@planara/types';
-import type { TransformListener } from '../../types/listener/transform-listener';
+import type { TransformListener } from '@/types/listener';
 
 /**
  * API для взаимодействия и настройки элементов управления сценой.

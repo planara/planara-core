@@ -1,7 +1,7 @@
 // Types
 import type { ToolType } from '@planara/types';
 // Listeners
-import type { TransformListener } from '../../types/listener/transform-listener';
+import type { TransformListener } from '@/types/listener';
 
 /**
  * Интерфейс store для менеджеров и хендлеров, которые позволяют работать с Tool фичей,

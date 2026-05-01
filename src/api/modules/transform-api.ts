@@ -2,11 +2,11 @@
 import * as THREE from 'three';
 // Types
 import type { ToolType } from '@planara/types';
-import type { TransformListener } from '../../types/listener/transform-listener';
+import type { TransformListener } from '@/types/listener';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { ITransformApi } from '../../interfaces/api/transform-api';
+import type { ITransformApi } from '@/interfaces/api';
 
 /**
  * API для управления трансформацией объектов (гизмо).

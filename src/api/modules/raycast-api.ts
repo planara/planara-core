@@ -3,7 +3,7 @@ import { inject, injectable } from 'tsyringe';
 // Types
 import type { SelectMode } from '@planara/types';
 // Interfaces
-import type { IRaycastApi } from '../../interfaces/api/raycast-api';
+import type { IRaycastApi } from '@/interfaces/api';
 
 /**
  * API для управления raycast (выделением геометрии).

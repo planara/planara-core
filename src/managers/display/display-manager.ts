@@ -1,13 +1,12 @@
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Interfaces
-import type { IDisplayManager } from '../../interfaces/manager/display-manager';
-import type { IHandler } from '../../interfaces/handler/handler';
-import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
-import type { IDisplayStore } from '../../interfaces/store/display-store';
+import type { IDisplayManager } from '@/interfaces/manager';
+import type { IHandler, IDisplayHandler } from '@/interfaces/handler';
+import type { IDisplayStore } from '@/interfaces/store';
 // Types
 import { DisplayMode } from '@planara/types';
-import { FeatureType } from '../../types/feature/feature-type';
+import { FeatureType } from '@/types/feature';
 
 /**
  * Менеджер для управления отображением

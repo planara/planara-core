@@ -1,12 +1,11 @@
 // IOC
 import { injectable, injectAll } from 'tsyringe';
 // Interfaces
-import type { IHandler } from '../../interfaces/handler/handler';
-import type { ISceneManager } from '../../interfaces/manager/scene-manager';
-import type { ISceneHandler } from '../../interfaces/handler/scene-handler';
+import type { IHandler, ISceneHandler } from '@/interfaces/handler';
+import type { ISceneManager } from '@/interfaces/manager';
 // Types
-import { type FigureType, SceneMode } from '@planara/types';
-import { FeatureType } from '../../types/feature/feature-type';
+import { SceneMode } from '@planara/types';
+import { FeatureType } from '@/types/feature';
 
 /**
  * Менеджер для управления сценой
@@ -28,10 +27,11 @@ export class SceneManager implements ISceneManager {
   }
 
   /** Установка режима редактирования сцены */
-  public manage(mode: SceneMode, figure?: FigureType): void {
+  public manage(mode: SceneMode, payload?: unknown): void {
+    // TODO: undo/redo через rollback();
+
     // Применение нового режима
-    if (mode === SceneMode.AddFigure) this._handlers.get(mode)?.handle(figure);
-    else this._handlers.get(mode)?.handle();
+    this._handlers.get(mode)?.handle(payload);
 
     // Сохранение текущего режима
     this._currentMode = mode;

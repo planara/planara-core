@@ -1,5 +1,5 @@
 // Types
-import type { FeatureType } from '../../types/feature/feature-type';
+import type { FeatureType } from '@/types/feature';
 
 /**
  * @public

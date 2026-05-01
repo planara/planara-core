@@ -1,16 +1,15 @@
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Interfaces
-import type { IHandler } from '../../interfaces/handler/handler';
-import type { IToolHandler } from '../../interfaces/handler/tool-handler';
-import type { IToolManager } from '../../interfaces/manager/tool-manager';
-import type { ITransformStore } from '../../interfaces/store/transform-store';
-import type { IPolicy } from '../../interfaces/policy';
+import type { IHandler, IToolHandler } from '@/interfaces/handler';
+import type { IToolManager } from '@/interfaces/manager';
+import type { ITransformStore } from '@/interfaces/store';
+import type { IPolicy } from '@/interfaces/policy';
 // Types
 import { ToolType } from '@planara/types';
+import { FeatureType } from '@/types/feature';
 // Policy
-import { usePolicy } from '../../decorators/use-policy';
-import { FeatureType } from '../../types/feature/feature-type';
+import { usePolicy } from '@/decorators';
 
 @injectable()
 export class ToolManager implements IToolManager {

@@ -1,15 +1,15 @@
 // Core
 import * as THREE from 'three';
 // Interfaces
-import type { ISceneHandler } from '../../interfaces/handler/scene-handler';
-import type { IMeshApi } from '../../interfaces/api/mesh-api';
+import type { ISceneHandler } from '@/interfaces/handler';
+import type { IMeshApi } from '@/interfaces/api';
+import type { ISelectStore } from '@/interfaces/store';
 // Types
 import { SceneMode } from '@planara/types';
 // IOC
 import { inject, injectable } from 'tsyringe';
-import type { ISelectStore } from '../../interfaces/store/select-store';
 // Helpers
-import { isMesh } from '../../utils/helpers';
+import { isMesh, isProxyObject } from '@/utils';
 
 /**
  * Хендлер для удаления фигур со сцены.
@@ -34,7 +34,7 @@ export class DeleteFigureSceneHandler implements ISceneHandler {
     const object = this._store.getSelectedObject();
 
     // Если выбранный объект является фигурой
-    if (isMesh(object)) {
+    if (isMesh(object) && !isProxyObject(object)) {
       // Удаление фигуры
       this._api.removeMesh(object);
       // Откат выбранной фигуры, чтобы снять transform controls

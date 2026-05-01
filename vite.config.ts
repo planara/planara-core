@@ -16,6 +16,11 @@ export default defineConfig({
       exclude: ['vite.config.ts'],
     }),
   ],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
   build: {
     minify: true,
     lib: {

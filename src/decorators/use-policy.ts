@@ -1,4 +1,5 @@
-import type { IPolicy } from '../interfaces/policy';
+// Interfaces
+import type { IPolicy } from '@/interfaces/policy';
 
 type PolicyAccessor<TThis> = (self: TThis) => IPolicy;
 

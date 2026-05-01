@@ -3,22 +3,18 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { ISelectHandler } from '../../interfaces/handler/select-handler';
-import type { ISelectStore } from '../../interfaces/store/select-store';
-import type { ISceneApi } from '../../interfaces/api/scene-api';
-import type { ICameraApi } from '../../interfaces/api/camera-api';
-import type { IRaycastApi } from '../../interfaces/api/raycast-api';
+import type { ISelectHandler } from '@/interfaces/handler';
+import type { ISelectStore } from '@/interfaces/store';
+import type { ISceneApi, ICameraApi, IRaycastApi } from '@/interfaces/api';
 // Types
 import { SelectMode } from '@planara/types';
+import { SelectEventType } from '@/types/event';
 // Events
-import type { EditorEvents } from '../../events/editor-events';
-import { EventTopics } from '../../events/event-topics';
-import { SelectEventType } from '../../types/event/select-event-type';
+import { type EditorEvents, EventTopics } from '@/events';
 // Constants
-import { HOVER_COLOR, SELECT_COLOR } from '../../constants/colors';
-import { OVERLAY_LAYER } from '../../constants/layers';
+import { HOVER_COLOR, SELECT_COLOR, OVERLAY_LAYER } from '@/constants';
 // Helpers
-import { findParentMesh } from '../../utils/helpers';
+import { findParentMesh, markAsProxyObject } from '@/utils';
 
 /**
  * Хендлер для выборки ребер.
@@ -59,9 +55,9 @@ export class EdgeSelectHandler implements ISelectHandler {
     // Устанавливаем слой отображения линий для камеры
     this._cameraApi.enableCameraLayer(OVERLAY_LAYER);
 
-    // Создание линий для добавления на сцену
-    this._hoverLine = this._makeOverlayLine(this._hoverColor);
-    this._selectLine = this._makeOverlayLine(this._selectColor);
+    // Создание линий для добавления на сцену и добавление пометки прокси-объекта
+    this._hoverLine = markAsProxyObject(this._makeOverlayLine(this._hoverColor));
+    this._selectLine = markAsProxyObject(this._makeOverlayLine(this._selectColor));
 
     // Добавление линий на сцену
     this._sceneApi.addObject(this._hoverLine, OVERLAY_LAYER);

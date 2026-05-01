@@ -3,8 +3,8 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IDisplayHandler } from '../../interfaces/handler/display-handler';
-import type { IMeshApi } from '../../interfaces/api/mesh-api';
+import type { IDisplayHandler } from '@/interfaces/handler';
+import type { IMeshApi } from '@/interfaces/api';
 // Types
 import { DisplayMode } from '@planara/types';
 

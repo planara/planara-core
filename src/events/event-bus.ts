@@ -3,7 +3,7 @@ import { EventEmitter } from 'events';
 // IOC
 import { injectable } from 'tsyringe';
 // Events
-import type { EditorEvents } from './editor-events';
+import type { EditorEvents } from '@/events';
 
 /**
  * Событийная шина редактора с типизированными топиками.

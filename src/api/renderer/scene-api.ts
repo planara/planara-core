@@ -3,8 +3,8 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { ISceneApi } from '../../interfaces/api/scene-api';
-import type { IRendererSceneAccess } from '../../interfaces/api/renderer/renderer-scene-access';
+import type { ISceneApi } from '@/interfaces/api';
+import type { IRendererSceneAccess } from '@/interfaces/api/renderer';
 
 /**
  * Реализация API для управления сценой.

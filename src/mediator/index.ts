@@ -1,14 +1,13 @@
 // IOC
 import { injectAll, injectable } from 'tsyringe';
 // Interfaces
-import type { IMediator } from '../interfaces/mediator';
-import type { IManager } from '../interfaces/manager/manager';
-import type { IMiddleware } from '../interfaces/middleware';
+import type { IMediator } from '@/interfaces/mediator';
+import type { IManager } from '@/interfaces/manager';
+import type { IMiddleware } from '@/interfaces/middleware';
+import type { ICommand } from '@/interfaces/command';
 // Types
-import type { ICommand } from '../interfaces/command';
-import type { IResponse } from '../interfaces/response';
-import type { FeatureType } from '../types/feature/feature-type';
-import { ResponseType } from '../types/response/response-type';
+import type { FeatureType } from '@/types/feature';
+import { type IResponse, ResponseType } from '@planara/types';
 
 /** */
 @injectable()

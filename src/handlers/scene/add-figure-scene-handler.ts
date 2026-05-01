@@ -1,17 +1,16 @@
 // Core
 import * as THREE from 'three';
 // Interfaces
-import type { ISceneHandler } from '../../interfaces/handler/scene-handler';
-import type { IMeshApi } from '../../interfaces/api/mesh-api';
+import type { ISceneHandler } from '@/interfaces/handler';
+import type { IMeshApi } from '@/interfaces/api';
 // Types
 import { type FigureType, SceneMode } from '@planara/types';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Constants
-import { BASE_GEOMETRIES, BASE_MATERIAL } from '../../constants/figure-geometries';
-import { MESH_LAYER } from '../../constants/layers';
+import { BASE_GEOMETRIES, BASE_MATERIAL, MESH_LAYER } from '@/constants';
 // Helpers
-import { makeLineSegments, makeVertexPoints } from '../../utils/helpers';
+import { makeLineSegments, makeVertexPoints, markAsNotExportable } from '@/utils';
 
 /**
  * Хендлер для добавления базовых фигур на сцену.
@@ -40,19 +39,19 @@ export class AddFigureSceneHandler implements ISceneHandler {
     if (pos && (pos as any).setUsage) (pos as any).setUsage(THREE.DynamicDrawUsage);
 
     // Создание фигуры
-    const mesh = new THREE.Mesh(geom, BASE_MATERIAL);
+    const mesh = new THREE.Mesh(geom, BASE_MATERIAL.clone());
 
     mesh.layers.enable(MESH_LAYER);
 
     const renderGeometry = geom.index ? geom.toNonIndexed() : geom;
 
     // внешние ребра
-    const line = makeLineSegments(renderGeometry);
+    const line = markAsNotExportable(makeLineSegments(renderGeometry));
     line.layers.enable(MESH_LAYER);
     mesh.add(line);
 
     // вершины
-    const points = makeVertexPoints(renderGeometry);
+    const points = markAsNotExportable(makeVertexPoints(renderGeometry));
     points.layers.enable(MESH_LAYER);
     mesh.add(points);
 

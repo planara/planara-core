@@ -3,17 +3,21 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { ITransformApi } from '../interfaces/api/transform-api';
-import type { IControlsStateApi } from '../interfaces/api/controls-state-api';
-import type { ISceneApi } from '../interfaces/api/scene-api';
-import type { IDomApi } from '../interfaces/api/dom-api';
-import type { ICameraApi } from '../interfaces/api/camera-api';
-import type { IUpdatableModule } from '../interfaces/module/updatable-module';
+import type {
+  ITransformApi,
+  IControlsStateApi,
+  ISceneApi,
+  IDomApi,
+  ICameraApi,
+} from '@/interfaces/api';
+import type { IUpdatableModule } from '@/interfaces/module';
 // Types
 import type { ToolType } from '@planara/types';
-import type { TransformListener } from '../types/listener/transform-listener';
+import type { TransformListener } from '@/types/listener';
 // Extensions
 import { ModelingTransformControls, OrbitWithState } from '@planara/three';
+// Helpers
+import { markAsNotExportable } from '@/utils';
 
 /**
  * Модуль управления камерой и трансформацией объектов.
@@ -68,7 +72,7 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
       this._domApi.getDomElement(),
     );
     this._transformHelper = this._transform.getHelper();
-    this._sceneApi.addToScene(this._transformHelper);
+    this._sceneApi.addToScene(markAsNotExportable(this._transformHelper));
 
     // Инициализация обработчиков событий
     this._initMouseListeners();
@@ -103,6 +107,54 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
     return !!this._transform?.dragging;
   }
 
+  private readonly _handlePointerDown = (event: PointerEvent) => {
+    this._transform?.pointerDown(event);
+  };
+
+  private readonly _handlePointerMove = (event: PointerEvent) => {
+    this._transform?.pointerMove(event);
+  };
+
+  private readonly _handlePointerUp = (event: PointerEvent) => {
+    this._transform?.pointerUp(event);
+  };
+
+  private readonly _handlePointerLeave = () => {
+    this._transform?.pointerHover(null);
+  };
+
+  private readonly _handleDraggingChanged = () => {
+    if (!this._orbit) {
+      return;
+    }
+
+    this._orbit.enabled = !this._transform?.dragging;
+  };
+
+  private readonly _handleObjectChange = () => {
+    for (const callback of this._transformListeners) {
+      callback();
+    }
+  };
+
+  /** Инициализация обработчиков событий на hover/click */
+  private _initMouseListeners() {
+    const canvas = this._domApi.getCanvas();
+
+    if (!this._transform || !this._orbit) return;
+
+    // transform controls
+    canvas.addEventListener('pointerdown', this._handlePointerDown);
+    canvas.addEventListener('pointermove', this._handlePointerMove);
+    canvas.addEventListener('pointerup', this._handlePointerUp);
+    canvas.addEventListener('pointerleave', this._handlePointerLeave);
+
+    this._transform.addEventListener('dragging-changed', this._handleDraggingChanged);
+    this._transform.addEventListener('objectChange', this._handleObjectChange);
+
+    this._isEventListenersAdded = true;
+  }
+
   /** Освобождает ресурсы модуля */
   public dispose(): Promise<void> | void {
     // Очистка обработчиков событий
@@ -112,14 +164,13 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
       if (!this._transform || !this._orbit) return;
 
       // transform controls
-      canvas.removeEventListener('pointerdown', (e) => this._transform?.pointerDown(e));
-      canvas.removeEventListener('pointermove', (e) => this._transform?.pointerMove(e));
-      canvas.removeEventListener('pointerup', (e) => this._transform?.pointerUp(e));
-      canvas.removeEventListener('pointerleave', () => this._transform?.pointerHover(null));
+      canvas.removeEventListener('pointerdown', this._handlePointerDown);
+      canvas.removeEventListener('pointermove', this._handlePointerMove);
+      canvas.removeEventListener('pointerup', this._handlePointerUp);
+      canvas.removeEventListener('pointerleave', this._handlePointerLeave);
 
-      this._transform.removeEventListener('dragging-changed', () => {
-        this._orbit!.enabled = !this._transform?.dragging;
-      });
+      this._transform.removeEventListener('dragging-changed', this._handleDraggingChanged);
+      this._transform.removeEventListener('objectChange', this._handleObjectChange);
 
       this._transformListeners.clear();
 
@@ -136,28 +187,5 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
     if (this._transformHelper?.parent) {
       this._transformHelper.parent.remove(this._transformHelper);
     }
-  }
-
-  /** Инициализация обработчиков событий на hover/click */
-  private _initMouseListeners() {
-    const canvas = this._domApi.getCanvas();
-
-    if (!this._transform || !this._orbit) return;
-
-    // transform controls
-    canvas.addEventListener('pointerdown', (e) => this._transform?.pointerDown(e));
-    canvas.addEventListener('pointermove', (e) => this._transform?.pointerMove(e));
-    canvas.addEventListener('pointerup', (e) => this._transform?.pointerUp(e));
-    canvas.addEventListener('pointerleave', () => this._transform?.pointerHover(null));
-
-    this._transform.addEventListener('dragging-changed', () => {
-      this._orbit!.enabled = !this._transform?.dragging;
-    });
-
-    this._transform.addEventListener('objectChange', () => {
-      for (const cb of this._transformListeners) cb();
-    });
-
-    this._isEventListenersAdded = true;
   }
 }

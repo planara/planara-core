@@ -40,7 +40,13 @@ export const BASE_GEOMETRIES: Record<FigureType, () => THREE.BufferGeometry> = {
   [FigureType.Cube]: () => new THREE.BoxGeometry(1, 1, 1, 1, 1, 1),
 
   /**
-   * Ультра-сфера (SphereGeometry) с гладкой поверхностью
+   * Сфера (SphereGeometry)
+   * @returns Сфера радиусом 0.5, 32 сегмента по ширине, 16 по высоте
+   */
+  [FigureType.Sphere]: () => new THREE.SphereGeometry(0.5, 32, 16),
+
+  /**
+   * UV-сфера (SphereGeometry) с гладкой поверхностью
    * @returns Сфера радиусом 0.5, 32 сегмента по ширине, 16 по высоте
    */
   [FigureType.UVSphere]: () => new THREE.SphereGeometry(0.5, 32, 16),
@@ -64,10 +70,40 @@ export const BASE_GEOMETRIES: Record<FigureType, () => THREE.BufferGeometry> = {
   [FigureType.Cone]: () => new THREE.ConeGeometry(0.5, 1, 32, 1, false),
 
   /**
+   * Пирамида с квадратным основанием.
+   * @returns Пирамида высотой 1 и радиусом основания 0.5
+   */
+  [FigureType.Pyramid]: () => new THREE.ConeGeometry(0.5, 1, 4, 1, false),
+
+  /**
+   * Тетраэдр (TetrahedronGeometry)
+   * @returns Тетраэдр радиусом 0.5
+   */
+  [FigureType.Tetrahedron]: () => new THREE.TetrahedronGeometry(0.5, 0),
+
+  /**
+   * Октаэдр (OctahedronGeometry)
+   * @returns Октаэдр радиусом 0.5
+   */
+  [FigureType.Octahedron]: () => new THREE.OctahedronGeometry(0.5, 0),
+
+  /**
+   * Додекаэдр (DodecahedronGeometry)
+   * @returns Додекаэдр радиусом 0.5
+   */
+  [FigureType.Dodecahedron]: () => new THREE.DodecahedronGeometry(0.5, 0),
+
+  /**
    * Тор (TorusGeometry)
    * @returns Тор радиусом 0.5, толщиной 0.2, 16 сегментов по радиусу, 64 по трубке
    */
   [FigureType.Torus]: () => new THREE.TorusGeometry(0.5, 0.2, 16, 64),
+
+  /**
+   * Тор-кнот (TorusKnotGeometry)
+   * @returns Тор-кнот радиусом 0.4 и толщиной 0.12
+   */
+  [FigureType.TorusKnot]: () => new THREE.TorusKnotGeometry(0.4, 0.12, 96, 16),
 
   /**
    * Круг (CircleGeometry)
@@ -76,10 +112,16 @@ export const BASE_GEOMETRIES: Record<FigureType, () => THREE.BufferGeometry> = {
   [FigureType.Circle]: () => new THREE.CircleGeometry(0.5, 32),
 
   /**
-   * Сфера (SphereGeometry) — алиас для UVSphere
-   * @returns Сфера радиусом 0.5, 32 сегмента по ширине, 16 по высоте
+   * Кольцо (RingGeometry)
+   * @returns Кольцо с внутренним радиусом 0.25 и внешним радиусом 0.5
    */
-  [FigureType.Sphere]: () => new THREE.SphereGeometry(0.5, 32, 16),
+  [FigureType.Ring]: () => new THREE.RingGeometry(0.25, 0.5, 32),
+
+  /**
+   * Капсула (CapsuleGeometry)
+   * @returns Капсула радиусом 0.3 и длиной 0.8
+   */
+  [FigureType.Capsule]: () => new THREE.CapsuleGeometry(0.3, 0.8, 8, 16),
 
   /**
    * Кастомная геометрия (не реализовано в фабрике)
