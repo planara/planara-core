@@ -1,5 +1,5 @@
 // Core
-import type { Renderer } from '../core/renderer';
+import type { Renderer } from '@/core';
 // IOC
 import { type Disposable, inject, injectable } from 'tsyringe';
 // Types
@@ -10,13 +10,14 @@ import {
   SceneMode,
   SelectMode,
   ToolType,
+  type IResponse,
+  type ExportSceneResult,
 } from '@planara/types';
-import { FeatureType } from '../types/feature/feature-type';
-import type { IResponse } from '../interfaces/response';
+import { FeatureType } from '@/types/feature';
 // Interfaces
-import type { IController } from '../interfaces/controller/controller';
-import type { ITransformStore } from '../interfaces/store/transform-store';
-import type { IMediator } from '../interfaces/mediator';
+import type { IController } from '@/interfaces/controller';
+import type { IExportStore, ITransformStore } from '@/interfaces/store';
+import type { IMediator } from '@/interfaces/mediator';
 
 /**
  * Хаб для управления редактированием
@@ -28,6 +29,7 @@ export class EditorHub implements Disposable {
     @inject('Renderer') private _renderer: Renderer,
     @inject('IMediator') private _mediator: IMediator,
     @inject('EditorStore') private _store: ITransformStore,
+    @inject('ExportStore') private _exportStore: IExportStore,
     @inject('IController') private _controller: IController,
   ) {
     this.setSelectMode(SelectMode.Mesh);
@@ -37,13 +39,6 @@ export class EditorHub implements Disposable {
   public setDisplayMode(mode: DisplayMode): IResponse | null {
     return this._mediator.send({
       type: FeatureType.Display,
-      payload: [mode],
-    });
-  }
-
-  public setSceneMode(mode: SceneMode): IResponse | null {
-    return this._mediator.send({
-      type: FeatureType.Scene,
       payload: [mode],
     });
   }
@@ -62,11 +57,46 @@ export class EditorHub implements Disposable {
     });
   }
 
-  public addFigure(mode: SceneMode, figure: FigureType): IResponse | null {
+  public addFigure(figure: FigureType): IResponse | null {
     return this._mediator.send({
       type: FeatureType.Scene,
-      payload: [mode, figure],
+      payload: [SceneMode.AddFigure, figure],
     });
+  }
+
+  public deleteFigure(): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Scene,
+      payload: [SceneMode.DeleteFigure],
+    });
+  }
+
+  public loadFigure(content: string): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Scene,
+      payload: [SceneMode.LoadFigure, content],
+    });
+  }
+
+  public loadScene(content: string): IResponse | null {
+    return this._mediator.send({
+      type: FeatureType.Scene,
+      payload: [SceneMode.Load, content],
+    });
+  }
+
+  public exportScene(): ExportSceneResult {
+    this._exportStore.clearResult();
+
+    const response = this._mediator.send({
+      type: FeatureType.Scene,
+      payload: [SceneMode.Export],
+    });
+
+    return {
+      response,
+      result: this._exportStore.getResult(),
+    };
   }
 
   public resizeRenderer() {

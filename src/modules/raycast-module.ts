@@ -1,22 +1,22 @@
 // Core
 import * as THREE from 'three';
 // Events
-import type { EventBus } from '../events/event-bus';
+import { type EventBus, EventTopics } from '@/events';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Types
 import { SelectMode } from '@planara/types';
-import { EventTopics } from '../events/event-topics';
 // Interfaces
-import type { IRuntimeModule } from '../interfaces/module/runtime-module';
-import type { IRaycastApi } from '../interfaces/api/raycast-api';
-import type { IDomApi } from '../interfaces/api/dom-api';
-import type { ICameraApi } from '../interfaces/api/camera-api';
-import type { IMeshApi } from '../interfaces/api/mesh-api';
-import type { IControlsStateApi } from '../interfaces/api/controls-state-api';
+import type { IRuntimeModule } from '@/interfaces/module';
+import type {
+  IRaycastApi,
+  IDomApi,
+  ICameraApi,
+  IMeshApi,
+  IControlsStateApi,
+} from '@/interfaces/api';
 // Constants
-import { LINE_THRESHOLD, POINTS_THRESHOLD } from '../constants/threshold';
-import { LINE_LAYER, MESH_LAYER, POINT_LAYER } from '../constants/layers';
+import { LINE_THRESHOLD, POINTS_THRESHOLD, LINE_LAYER, MESH_LAYER, POINT_LAYER } from '@/constants';
 
 /**
  * Runtime-модуль raycast-взаимодействия.
@@ -58,7 +58,7 @@ export class RaycastModule implements IRuntimeModule, IRaycastApi {
   private _lastHoverKey: string | null = null;
 
   /**
-   * Текуший режим для raycaster
+   * Текущий режим для raycaster
    *
    * @private
    * @member

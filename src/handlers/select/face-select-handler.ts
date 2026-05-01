@@ -3,21 +3,19 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { ISelectHandler } from '../../interfaces/handler/select-handler';
-import type { ISelectStore } from '../../interfaces/store/select-store';
-import type { ICameraApi } from '../../interfaces/api/camera-api';
-import type { ISceneApi } from '../../interfaces/api/scene-api';
-import type { IRaycastApi } from '../../interfaces/api/raycast-api';
+import type { ISelectHandler } from '@/interfaces/handler';
+import type { ISelectStore } from '@/interfaces/store';
+import type { ICameraApi, ISceneApi, IRaycastApi } from '@/interfaces/api';
 // Types
 import { SelectMode } from '@planara/types';
-import type { FaceGroup } from '../../types/select/face-group';
+import type { FaceGroup } from '@/types/select';
+import { SelectEventType } from '@/types/event';
 // Events
-import type { EditorEvents } from '../../events/editor-events';
-import { EventTopics } from '../../events/event-topics';
-import { SelectEventType } from '../../types/event/select-event-type';
+import { type EditorEvents, EventTopics } from '@/events';
 // Constants
-import { HOVER_COLOR, SELECT_COLOR } from '../../constants/colors';
-import { OVERLAY_LAYER } from '../../constants/layers';
+import { HOVER_COLOR, SELECT_COLOR, OVERLAY_LAYER } from '@/constants';
+// Utils
+import { markAsProxyObject } from '@/utils';
 
 /*
  * Сама идея схожа с поведением vertex/edge selection, взять прокси объекты и копировать геометрию модели на прокси
@@ -74,9 +72,9 @@ export class FaceSelectHandler implements ISelectHandler {
     // Устанавливаем слой отображения граней для камеры
     this._cameraApi.enableCameraLayer(OVERLAY_LAYER);
 
-    // Создание граней для добавления на сцену
-    this._hoverFace = this._makeOverlayFace(this._hoverColor);
-    this._selectFace = this._makeOverlayFace(this._selectColor);
+    // Создание граней для добавления на сцену и добавление пометки прокси-объекта
+    this._hoverFace = markAsProxyObject(this._makeOverlayFace(this._hoverColor));
+    this._selectFace = markAsProxyObject(this._makeOverlayFace(this._selectColor));
 
     // Добавление граней на сцену
     this._sceneApi.addObject(this._hoverFace, OVERLAY_LAYER);

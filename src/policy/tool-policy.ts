@@ -1,13 +1,13 @@
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IPolicy } from '../interfaces/policy';
-import type { ISelectStore } from '../interfaces/store/select-store';
+import type { IPolicy } from '@/interfaces/policy';
+import type { ISelectStore } from '@/interfaces/store';
 // Types
 import { DEFAULT_TOOL_RULES, type ToolType } from '@planara/types';
-import { ResponseType } from '../types/response/response-type';
+import { ResponseType } from '@planara/types';
 // Errors
-import { PolicyError } from '../errors/policy-error';
+import { PolicyError } from '@/errors';
 
 /**
  * Политика управления инструментами.
@@ -29,7 +29,7 @@ export class ToolPolicy implements IPolicy {
 
     if (!allowed) {
       throw new PolicyError(
-        ResponseType.ToolNotAllowed,
+        ResponseType.NotAllowed,
         `Tool ${tool} is not allowed`,
         'TOOL_NOT_ALLOWED',
       );

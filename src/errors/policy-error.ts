@@ -1,4 +1,5 @@
-import { ResponseType } from '../types/response/response-type';
+// Types
+import { ResponseType } from '@planara/types';
 
 export class PolicyError extends Error {
   private readonly _name: string = 'PolicyException';

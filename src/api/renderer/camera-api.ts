@@ -3,8 +3,8 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { ICameraApi } from '../../interfaces/api/camera-api';
-import type { IRendererCameraAccess } from '../../interfaces/api/renderer/renderer-camera-access';
+import type { ICameraApi } from '@/interfaces/api';
+import type { IRendererCameraAccess } from '@/interfaces/api/renderer';
 
 /**
  * Реализация API для управления камерой.

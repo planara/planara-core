@@ -5,9 +5,8 @@ import { inject, injectable } from 'tsyringe';
 // Extensions
 import { SymmetricAxesHelper } from '@planara/three';
 // Interfaces
-import type { IRuntimeModule } from '../interfaces/module/runtime-module';
-import type { ISceneApi } from '../interfaces/api/scene-api';
-import type { IMeshApi } from '../interfaces/api/mesh-api';
+import type { IRuntimeModule } from '@/interfaces/module';
+import type { ISceneApi, IMeshApi } from '@/interfaces/api';
 
 /**
  * Модуль управления сценой, используется для добавления/удаления фигур,
@@ -61,6 +60,7 @@ export class SceneModule implements IRuntimeModule, IMeshApi {
 
   public removeMesh(mesh: THREE.Mesh): void {
     const index = this._meshes.indexOf(mesh);
+
     if (index >= 0) {
       this._meshes.splice(index, 1);
     }

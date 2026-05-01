@@ -1,8 +1,8 @@
 // Core
 import { BaseToolHandler } from './base-tool-handler';
 // Interfaces
-import type { ITransformApi } from '../../interfaces/api/transform-api';
-import type { ITransformStore } from '../../interfaces/store/transform-store';
+import type { ITransformApi } from '@/interfaces/api';
+import type { ITransformStore } from '@/interfaces/store';
 // Types
 import { ToolType } from '@planara/types';
 // IOC

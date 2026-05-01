@@ -3,17 +3,16 @@ import * as THREE from 'three';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { ISelectHandler } from '../../interfaces/handler/select-handler';
-import type { ISelectStore } from '../../interfaces/store/select-store';
-import type { IRaycastApi } from '../../interfaces/api/raycast-api';
+import type { ISelectHandler } from '@/interfaces/handler';
+import type { ISelectStore } from '@/interfaces/store';
+import type { IRaycastApi } from '@/interfaces/api';
 // Types
 import { SelectMode } from '@planara/types';
+import { SelectEventType } from '@/types/event';
 // Events
-import type { EditorEvents } from '../../events/editor-events';
-import { EventTopics } from '../../events/event-topics';
-import { SelectEventType } from '../../types/event/select-event-type';
+import { type EditorEvents, EventTopics } from '@/events';
 // Constants
-import { HOVER_COLOR, SELECT_COLOR } from '../../constants/colors';
+import { HOVER_COLOR, SELECT_COLOR } from '@/constants';
 
 /**
  * Хендлер для выборки моделей.

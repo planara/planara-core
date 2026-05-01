@@ -1,12 +1,9 @@
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Interfaces
-import type { IController } from '../interfaces/controller/controller';
-import type { IRenderable } from '../interfaces/api/renderer/renderable';
-import type { IRuntimeModule } from '../interfaces/module/runtime-module';
-import type { IRenderableModule } from '../interfaces/module/renderable-module';
-import type { IUpdatableModule } from '../interfaces/module/updatable-module';
-
+import type { IController } from '@/interfaces/controller';
+import type { IRenderable } from '@/interfaces/api/renderer';
+import type { IRuntimeModule, IRenderableModule, IUpdatableModule } from '@/interfaces/module';
 /**
  * Контроллер для оркестрации жизненного цикла модулей и цикла рендеринга.
  *
@@ -50,10 +47,16 @@ export class RendererController implements IController {
    * @constructor
    */
   constructor(
-    @injectAll('IUpdatableModule') private _updatable: IUpdatableModule[],
-    @injectAll('IRenderableModule') private _renderable: IRenderableModule[],
-    @injectAll('IRuntimeModule') private _runtime: IRuntimeModule[],
-    @inject('IRenderable') private _renderer: IRenderable,
+    @injectAll('IUpdatableModule', { isOptional: true })
+    private readonly _updatable: IUpdatableModule[],
+
+    @injectAll('IRenderableModule', { isOptional: true })
+    private readonly _renderable: IRenderableModule[],
+
+    @injectAll('IRuntimeModule', { isOptional: true })
+    private readonly _runtime: IRuntimeModule[],
+
+    @inject('IRenderable') private readonly _renderer: IRenderable,
   ) {}
 
   public start(): void {

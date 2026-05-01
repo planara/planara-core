@@ -1,3 +1,4 @@
+// Interfaces
 import type { IManager } from './manager';
 
 /**

@@ -1,7 +1,7 @@
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IControlsStateApi } from '../../interfaces/api/controls-state-api';
+import type { IControlsStateApi } from '@/interfaces/api';
 
 /**
  * API для получения состояния элементов управления сценой.

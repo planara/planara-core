@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // Types
 import type { FigureTransform, SelectMode } from '@planara/types';
 // Listeners
-import type { SelectedListener } from '../../types/listener/selected-listener';
+import type { SelectedListener } from '@/types/listener';
 
 /**
  * Интерфейс store для менеджеров и хендлеров, которые позволяют работать с Select фичей,

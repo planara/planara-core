@@ -1,9 +1,9 @@
 // Types
 import type { ToolType } from '@planara/types';
 // Interfaces
-import type { ITransformApi } from '../../interfaces/api/transform-api';
-import type { IToolHandler } from '../../interfaces/handler/tool-handler';
-import type { ITransformStore } from '../../interfaces/store/transform-store';
+import type { ITransformApi } from '@/interfaces/api';
+import type { IToolHandler } from '@/interfaces/handler';
+import type { ITransformStore } from '@/interfaces/store';
 
 /**
  * Базовый класс для инструментов

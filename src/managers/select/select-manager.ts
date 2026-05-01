@@ -1,18 +1,15 @@
-// Interfaces
-import type { ISelectHandler } from '../../interfaces/handler/select-handler';
-import type { ISelectManager } from '../../interfaces/manager/select-manager';
-import type { IHandler } from '../../interfaces/handler/handler';
-import type { ISelectStore } from '../../interfaces/store/select-store';
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Events
-import type { EventBus } from '../../events/event-bus';
-import { EventTopics } from '../../events/event-topics';
-import type { EditorEvents } from '../../events/editor-events';
-import { SelectEventType } from '../../types/event/select-event-type';
+import { type EventBus, EventTopics, type EditorEvents } from '@/events';
 // Types
 import { SelectMode } from '@planara/types';
-import { FeatureType } from '../../types/feature/feature-type';
+import { FeatureType } from '@/types/feature';
+import { SelectEventType } from '@/types/event';
+// Interfaces
+import type { ISelectHandler, IHandler } from '@/interfaces/handler';
+import type { ISelectManager } from '@/interfaces/manager';
+import type { ISelectStore } from '@/interfaces/store';
 
 /**
  * Менеджер, который управляет режимами выборки.

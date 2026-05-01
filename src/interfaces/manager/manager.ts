@@ -1,7 +1,7 @@
 // Interfaces
 import type { Disposable } from 'tsyringe';
 // Types
-import type { FeatureType } from '../../types/feature/feature-type';
+import type { FeatureType } from '@/types/feature';
 
 /**
  * Общий интерфейс для всех менеджеров в хабе.

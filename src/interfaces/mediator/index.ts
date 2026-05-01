@@ -1,6 +1,6 @@
-// Types
-import type { ICommand } from '../command';
-import type { IResponse } from '../response';
+// Interfaces
+import type { ICommand } from '@/interfaces/command';
+import type { IResponse } from '@planara/types';
 import type { Disposable } from 'tsyringe';
 
 /**

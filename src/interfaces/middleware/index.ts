@@ -1,5 +1,5 @@
 // Types
-import type { IResponse } from '../response';
+import type { IResponse } from '@planara/types';
 
 /**
  * Интерфейс middleware в pipeline обработки команд редактора.

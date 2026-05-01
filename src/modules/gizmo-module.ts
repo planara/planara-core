@@ -1,10 +1,8 @@
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Interfaces
-import type { IRenderableModule } from '../interfaces/module/renderable-module';
-import type { ICameraApi } from '../interfaces/api/camera-api';
-import type { IDomApi } from '../interfaces/api/dom-api';
-import type { IRendererApi } from '../interfaces/api/renderer-api';
+import type { IRenderableModule } from '@/interfaces/module';
+import type { ICameraApi, IDomApi, IRendererApi } from '@/interfaces/api';
 // Extensions
 import { CameraAxesGizmo } from '@planara/three';
 

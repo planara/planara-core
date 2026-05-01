@@ -1,14 +1,18 @@
 // IOC
 import { injectable } from 'tsyringe';
 // Interfaces
-import type { IMiddleware } from '../interfaces/middleware';
+import type { IMiddleware } from '@/interfaces/middleware';
 // Errors
-import { PolicyError } from '../errors/policy-error';
+import { PolicyError, ValidationError } from '@/errors';
 // Types
-import { ResponseType } from '../types/response/response-type';
-import type { IResponse } from '../interfaces/response';
+import { type IResponse, ResponseType } from '@planara/types';
 
-/** */
+/**
+ * Middleware для перехвата ошибок.
+ *
+ * @remarks
+ * Перехватывает ошибки и формирует IResponse с текстом ошибки и кодом.
+ */
 @injectable()
 export class ExceptionMiddleware implements IMiddleware {
   public handle(next: () => IResponse | null): IResponse | null {
@@ -16,6 +20,15 @@ export class ExceptionMiddleware implements IMiddleware {
       return next();
     } catch (error) {
       if (error instanceof PolicyError) {
+        return {
+          type: error.type,
+          message: error.message,
+          code: error.code as string,
+          blocked: true,
+        };
+      }
+
+      if (error instanceof ValidationError) {
         return {
           type: error.type,
           message: error.message,
