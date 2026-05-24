@@ -6,3 +6,6 @@ export * from './raycast-api';
 export * from './renderer-api';
 export * from './scene-api';
 export * from './transform-api';
+export * from './interaction-api';
+export * from './metrics-api';
+export * from './renderer-info-api';

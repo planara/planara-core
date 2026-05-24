@@ -9,7 +9,7 @@ import { SceneMode } from '@planara/types';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Helpers
-import { isMesh, isProxyObject } from '@/utils';
+import { isMesh, isProxyObject } from '@/shared/utils';
 
 /**
  * Хендлер для удаления фигур со сцены.

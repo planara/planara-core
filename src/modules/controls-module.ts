@@ -10,14 +10,14 @@ import type {
   IDomApi,
   ICameraApi,
 } from '@/interfaces/api';
-import type { IUpdatableModule } from '@/interfaces/module';
+import type { IUpdatableModule, IInteractiveModule } from '@/interfaces/module';
 // Types
 import type { ToolType } from '@planara/types';
 import type { TransformListener } from '@/types/listener';
 // Extensions
 import { ModelingTransformControls, OrbitWithState } from '@planara/three';
 // Helpers
-import { markAsNotExportable } from '@/utils';
+import { markAsNotExportable } from '@/shared/utils';
 
 /**
  * Модуль управления камерой и трансформацией объектов.
@@ -29,6 +29,7 @@ import { markAsNotExportable } from '@/utils';
  *
  * Модуль реализует:
  * - `IRuntimeModule` — жизненный цикл (init/dispose)
+ * - `IInteractiveModule` — управление пользовательским вводом
  * - `IUpdatableModule` — обновление состояния каждый кадр (update)
  * - `IControlsApi` — публичное API для управления контролами
  * - `IControlsStateApi` — публичное API для получения состояния контролов
@@ -42,17 +43,42 @@ import { markAsNotExportable } from '@/utils';
  * @class
  */
 @injectable()
-export class ControlsModule implements IUpdatableModule, ITransformApi, IControlsStateApi {
-  /** Orbit-контроллер для управления камерой */
+export class ControlsModule
+  implements IUpdatableModule, IInteractiveModule, ITransformApi, IControlsStateApi
+{
+  /**
+   * Orbit-контроллер для управления камерой
+   *
+   * @private
+   * @member
+   */
   private _orbit: OrbitWithState | null = null;
 
-  /** Transform-контроллер для редактирования */
+  /**
+   * Transform-контроллер для редактирования
+   *
+   * @private
+   * @member
+   */
   private _transform: ModelingTransformControls | null = null;
   private _transformHelper: THREE.Object3D | null = null;
   private _transformListeners = new Set<TransformListener>();
 
-  /** Были ли инициализированы обработчики событий (hover/click) */
+  /**
+   * Были ли инициализированы обработчики событий (hover/click)
+   *
+   * @private
+   * @member
+   */
   private _isEventListenersAdded = false;
+
+  /**
+   * Доступно ли пользовательское взаимодействие с контроллерами
+   *
+   * @private
+   * @member
+   */
+  private _isInteractionEnabled = true;
 
   public constructor(
     @inject('ICameraApi') private _cameraApi: ICameraApi,
@@ -107,19 +133,49 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
     return !!this._transform?.dragging;
   }
 
+  public setInteractionEnabled(enabled: boolean): void {
+    this._isInteractionEnabled = enabled;
+
+    // Orbit-контроллер
+    if (this._orbit) {
+      this._orbit.enabled = enabled;
+    }
+
+    // Transform-контроллер
+    if (this._transform) {
+      this._transform.enabled = enabled;
+    }
+
+    if (!enabled) {
+      this._transform?.detach();
+    }
+  }
+
+  public isInteractionEnabled(): boolean {
+    return this._isInteractionEnabled;
+  }
+
   private readonly _handlePointerDown = (event: PointerEvent) => {
+    if (!this._isInteractionEnabled) return;
+
     this._transform?.pointerDown(event);
   };
 
   private readonly _handlePointerMove = (event: PointerEvent) => {
+    if (!this._isInteractionEnabled) return;
+
     this._transform?.pointerMove(event);
   };
 
   private readonly _handlePointerUp = (event: PointerEvent) => {
+    if (!this._isInteractionEnabled) return;
+
     this._transform?.pointerUp(event);
   };
 
   private readonly _handlePointerLeave = () => {
+    if (!this._isInteractionEnabled) return;
+
     this._transform?.pointerHover(null);
   };
 
@@ -128,7 +184,7 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
       return;
     }
 
-    this._orbit.enabled = !this._transform?.dragging;
+    this._orbit.enabled = this._isInteractionEnabled && !this._transform?.dragging;
   };
 
   private readonly _handleObjectChange = () => {
@@ -161,7 +217,10 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
     if (this._isEventListenersAdded) {
       const canvas = this._domApi.getCanvas();
 
-      if (!this._transform || !this._orbit) return;
+      if (this._transform) {
+        this._transform.removeEventListener('dragging-changed', this._handleDraggingChanged);
+        this._transform.removeEventListener('objectChange', this._handleObjectChange);
+      }
 
       // transform controls
       canvas.removeEventListener('pointerdown', this._handlePointerDown);
@@ -169,12 +228,10 @@ export class ControlsModule implements IUpdatableModule, ITransformApi, IControl
       canvas.removeEventListener('pointerup', this._handlePointerUp);
       canvas.removeEventListener('pointerleave', this._handlePointerLeave);
 
-      this._transform.removeEventListener('dragging-changed', this._handleDraggingChanged);
-      this._transform.removeEventListener('objectChange', this._handleObjectChange);
-
       this._transformListeners.clear();
 
       this._isEventListenersAdded = false;
+      this._isInteractionEnabled = true;
     }
 
     // Очистка хелперов

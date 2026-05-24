@@ -9,7 +9,7 @@ import { SceneMode } from '@planara/types';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Helpers
-import { createObjExportRoot } from '@/utils';
+import { createObjExportRoot } from '@/shared/utils';
 
 /**
  * Хендлер для экспорта сцены в виде файла.

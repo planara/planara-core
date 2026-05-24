@@ -1,13 +1,13 @@
 // Core
 import * as THREE from 'three';
 // Events
-import { type EventBus, EventTopics } from '@/events';
+import { type EventBus, EventTopics } from '@/shared/events';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Types
 import { SelectMode } from '@planara/types';
 // Interfaces
-import type { IRuntimeModule } from '@/interfaces/module';
+import type { IRuntimeModule, IInteractiveModule } from '@/interfaces/module';
 import type {
   IRaycastApi,
   IDomApi,
@@ -16,7 +16,13 @@ import type {
   IControlsStateApi,
 } from '@/interfaces/api';
 // Constants
-import { LINE_THRESHOLD, POINTS_THRESHOLD, LINE_LAYER, MESH_LAYER, POINT_LAYER } from '@/constants';
+import {
+  LINE_THRESHOLD,
+  POINTS_THRESHOLD,
+  LINE_LAYER,
+  MESH_LAYER,
+  POINT_LAYER,
+} from '@/shared/constants';
 
 /**
  * Runtime-модуль raycast-взаимодействия.
@@ -31,7 +37,7 @@ import { LINE_THRESHOLD, POINTS_THRESHOLD, LINE_LAYER, MESH_LAYER, POINT_LAYER }
  * @class
  */
 @injectable()
-export class RaycastModule implements IRuntimeModule, IRaycastApi {
+export class RaycastModule implements IRuntimeModule, IInteractiveModule, IRaycastApi {
   /**
    * Raycast для получения событий наведения/клика по модели
    *
@@ -73,6 +79,14 @@ export class RaycastModule implements IRuntimeModule, IRaycastApi {
    */
   private _isEventListenersAdded = false;
 
+  /**
+   * Доступно ли пользовательское взаимодействие через raycast.
+   *
+   * @private
+   * @member
+   */
+  private _isInteractionEnabled = true;
+
   public constructor(
     @inject('IDomApi') private _domApi: IDomApi,
     @inject('ICameraApi') private _cameraApi: ICameraApi,
@@ -104,6 +118,36 @@ export class RaycastModule implements IRuntimeModule, IRaycastApi {
     this._currentRaycastMode = mode;
     this._lastHoverKey = null;
     this._applyRaycastParamsByMode();
+  }
+
+  public setInteractionEnabled(enabled: boolean): void {
+    this._isInteractionEnabled = enabled;
+
+    if (!enabled) {
+      this._clearState();
+    }
+  }
+
+  public isInteractionEnabled(): boolean {
+    return this._isInteractionEnabled;
+  }
+
+  /**
+   * Сбрасывает текущее состояние
+   *
+   * @private
+   * @method
+   */
+  private _clearState(): void {
+    const meshes = this._meshApi.getMeshes();
+
+    meshes.forEach((m) => {
+      m.userData.isHit = false;
+    });
+
+    this._lastHoverKey = null;
+    this._bus.emit(EventTopics.SelectHover, null);
+    this._bus.emit(EventTopics.SelectClick, null);
   }
 
   /** Применяет параметры raycaster в зависимости от текущего режима */
@@ -219,7 +263,8 @@ export class RaycastModule implements IRuntimeModule, IRaycastApi {
     this._bus.emit(topic, { intersection: hitIntersection });
   }
 
-  /** Поиск видимой части меша
+  /**
+   * Поиск видимой части меша
    * необходимо это для того, чтобы отправлять только видимые элементы модели, а не все попадания
    */
   private _getVisibleHit(
@@ -257,16 +302,22 @@ export class RaycastModule implements IRuntimeModule, IRaycastApi {
 
   /** Обработчик события для hover */
   private _handleMouseMove = (e: MouseEvent) => {
+    if (!this._isInteractionEnabled) return;
+
     this._processRaycastEvent(e, EventTopics.SelectHover, true);
   };
 
   /** Обработчик события на click */
   private _handleMouseClick = (e: MouseEvent) => {
+    if (!this._isInteractionEnabled) return;
+
     this._processRaycastEvent(e, EventTopics.SelectClick, false);
   };
 
   /** Обработчик двойного клика */
   private _handleDoubleClick = (e: MouseEvent): void => {
+    if (!this._isInteractionEnabled) return;
+
     const hitIntersection = this._getHitIntersection(e);
     if (hitIntersection === undefined) return;
 
@@ -278,6 +329,8 @@ export class RaycastModule implements IRuntimeModule, IRaycastApi {
 
   /** Обработчик ухода курсора с canvas */
   private _handleMouseLeave = (): void => {
+    if (!this._isInteractionEnabled) return;
+
     this._lastHoverKey = null;
     this._bus.emit(EventTopics.SelectHover, null);
   };
@@ -307,6 +360,7 @@ export class RaycastModule implements IRuntimeModule, IRaycastApi {
   public dispose(): Promise<void> | void {
     this._removeMouseListeners();
     this._isEventListenersAdded = false;
+    this._isInteractionEnabled = true;
     this._lastHoverKey = null;
   }
 }

@@ -10,11 +10,11 @@ import type { ICameraApi, ISceneApi, IRaycastApi } from '@/interfaces/api';
 import { SelectMode } from '@planara/types';
 import { SelectEventType } from '@/types/event';
 // Events
-import { type EditorEvents, EventTopics } from '@/events';
+import { type EditorEvents, EventTopics } from '@/shared/events';
 // Constants
-import { HOVER_COLOR, SELECT_COLOR, BASE_POINT_SIZE, OVERLAY_LAYER } from '@/constants';
+import { HOVER_COLOR, SELECT_COLOR, BASE_POINT_SIZE, OVERLAY_LAYER } from '@/shared/constants';
 // Helpers
-import { findParentMesh, markAsProxyObject } from '@/utils';
+import { findParentMesh, markAsProxyObject } from '@/shared/utils';
 
 /**
  * Хендлер для выборки вершин.

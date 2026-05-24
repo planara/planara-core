@@ -7,9 +7,9 @@ import type { ISceneHandler } from '@/interfaces/handler';
 import type { IMeshApi } from '@/interfaces/api';
 import type { IValidator } from '@/interfaces/validator';
 // Decorators
-import { useValidator } from '@/decorators';
+import { useValidator } from '@/shared/decorators';
 // Helpers
-import { createMeshesFromObjContent } from '@/utils';
+import { createMeshesFromObjContent } from '@/shared/utils';
 
 /**
  * Хендлер для загрузки фигуры из файла.

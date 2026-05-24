@@ -8,9 +8,9 @@ import { type FigureType, SceneMode } from '@planara/types';
 // IOC
 import { inject, injectable } from 'tsyringe';
 // Constants
-import { BASE_GEOMETRIES, BASE_MATERIAL, MESH_LAYER } from '@/constants';
+import { BASE_GEOMETRIES, BASE_MATERIAL, MESH_LAYER } from '@/shared/constants';
 // Helpers
-import { makeLineSegments, makeVertexPoints, markAsNotExportable } from '@/utils';
+import { makeLineSegments, makeVertexPoints, markAsNotExportable } from '@/shared/utils';
 
 /**
  * Хендлер для добавления базовых фигур на сцену.

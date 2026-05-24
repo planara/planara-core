@@ -8,12 +8,14 @@ import type {
   IRendererAccess,
   IRendererDomAccess,
   IRendererSceneAccess,
+  IRendererInfoAccess,
   IRenderable,
 } from '@/interfaces/api/renderer';
 // Types
 import type { RendererConfig } from '@planara/types';
+import type { RendererInfoMetrics } from '@/types/renderer';
 // Helpers
-import { markAsNotExportable } from '@/utils';
+import { markAsNotExportable } from '@/shared/utils';
 
 /**
  * Базовый класс рендерера для работы с WebGL через Three.js.
@@ -46,6 +48,7 @@ export class Renderer
     IRendererCameraAccess,
     IRendererDomAccess,
     IRendererSceneAccess,
+    IRendererInfoAccess,
     IRenderable,
     Disposable
 {
@@ -174,7 +177,7 @@ export class Renderer
    * Вызывается при изменении размеров canvas (например, при ресайзе окна браузера).
    *
    * @example
-   * ```typescript
+   * ```ts
    * window.addEventListener('resize', () => renderer.resize());
    * ```
    *
@@ -222,7 +225,7 @@ export class Renderer
    * **Важно:** вызывать метод только один раз.
    *
    * @example
-   * ```typescript
+   * ```ts
    * renderer.loop();
    * ```
    *
@@ -253,6 +256,17 @@ export class Renderer
 
   public getScene(): THREE.Scene {
     return this.scene;
+  }
+
+  public getRendererInfo(): RendererInfoMetrics {
+    const info = this.renderer.info;
+
+    return {
+      drawCalls: info.render.calls,
+      triangles: info.render.triangles,
+      geometries: info.memory.geometries,
+      textures: info.memory.textures,
+    };
   }
 
   /**

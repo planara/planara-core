@@ -1,10 +1,15 @@
 // IOC
 import 'reflect-metadata';
-import { createEditorContainer, createViewerContainer } from '@/ioc/container';
+import {
+  createEditorContainer,
+  createViewerContainer,
+  createBenchmarkContainer,
+} from '@/shared/ioc/container';
 import type { DependencyContainer } from 'tsyringe';
 // Hub
 import type { EditorHub } from '@/hub/editor-hub';
 import type { ViewerHub } from '@/hub/viewer-hub';
+import type { BenchmarkHub } from '@/hub/benchmark-hub';
 // Types
 import type { RendererConfigInput } from '@planara/types';
 
@@ -58,7 +63,7 @@ export const createViewerHub = (
 };
 
 /**
- * Возвращает уже созданный хаб, если редактор инициализирован.
+ * Возвращает уже созданный хаб, если вьювер инициализирован.
  * @public
  */
 export const getViewerHub = (): ViewerHub => {
@@ -67,4 +72,33 @@ export const getViewerHub = (): ViewerHub => {
   }
 
   return _container.resolve<ViewerHub>('ViewerHub');
+};
+
+/**
+ * Инициализирует бенчмарк и возвращает хаб.
+ * Вызывать один раз при старте (когда есть canvas).
+ * @public
+ */
+export const createBenchmarkHub = (
+  canvas: HTMLCanvasElement,
+  rendererConfig?: RendererConfigInput,
+): BenchmarkHub => {
+  if (_container) {
+    return _container.resolve<BenchmarkHub>('BenchmarkHub');
+  }
+
+  _container = createBenchmarkContainer(canvas, rendererConfig);
+  return _container.resolve<BenchmarkHub>('BenchmarkHub');
+};
+
+/**
+ * Возвращает уже созданный хаб, если бенчмарк инициализирован.
+ * @public
+ */
+export const getBenchmarkHub = (): BenchmarkHub => {
+  if (!_container) {
+    throw new Error('ViewerHub is not initialized. Call createBenchmarkHub(canvas) first.');
+  }
+
+  return _container.resolve<BenchmarkHub>('BenchmarkHub');
 };
