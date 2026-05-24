@@ -6,7 +6,7 @@ import { type Disposable, inject, injectable } from 'tsyringe';
 import { type FigureType, SceneMode, type IResponse } from '@planara/types';
 import { FeatureType } from '@/types/feature';
 // Interfaces
-import type { IController } from '@/interfaces/controller';
+import type { IWorker } from '@/interfaces/worker';
 import type { IMediator } from '@/interfaces/mediator';
 
 /**
@@ -18,7 +18,7 @@ export class ViewerHub implements Disposable {
   public constructor(
     @inject('Renderer') private _renderer: Renderer,
     @inject('IMediator') private _mediator: IMediator,
-    @inject('IController') private _controller: IController,
+    @inject('IWorker') private _worker: IWorker,
   ) {}
 
   public addFigure(figure: FigureType): IResponse | null {
@@ -51,14 +51,14 @@ export class ViewerHub implements Disposable {
    * Вызывается после создания хаба.
    */
   public start(): void {
-    this._controller.start();
+    this._worker.start();
   }
 
   /**
    * Останавливает вьювер.
    */
   public stop(): void {
-    this._controller.stop();
+    this._worker.stop();
   }
 
   public dispose(): Promise<void> | void {

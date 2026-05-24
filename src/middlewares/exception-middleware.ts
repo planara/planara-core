@@ -3,7 +3,7 @@ import { injectable } from 'tsyringe';
 // Interfaces
 import type { IMiddleware } from '@/interfaces/middleware';
 // Errors
-import { PolicyError, ValidationError } from '@/errors';
+import { PolicyError, ValidationError } from '@/shared/errors';
 // Types
 import { type IResponse, ResponseType } from '@planara/types';
 

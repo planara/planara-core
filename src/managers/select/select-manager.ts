@@ -1,7 +1,7 @@
 // IOC
 import { inject, injectable, injectAll } from 'tsyringe';
 // Events
-import { type EventBus, EventTopics, type EditorEvents } from '@/events';
+import { type EventBus, EventTopics, type EditorEvents } from '@/shared/events';
 // Types
 import { SelectMode } from '@planara/types';
 import { FeatureType } from '@/types/feature';

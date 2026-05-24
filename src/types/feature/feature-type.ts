@@ -15,4 +15,7 @@ export enum FeatureType {
 
   /** Инструменты */
   Tool,
+
+  /** Бенчмарк */
+  Benchmark,
 }

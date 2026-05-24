@@ -59,6 +59,7 @@ export interface ISceneApi {
    * Удаляет объект со сцены.
    *
    * @param object - объект Three.js для удаления
+   * @param dispose - нужно ли освободить ресурсы объекта и его дочерних элементов
    *
    * @remarks
    * Объект перестаёт отображаться на сцене.
@@ -71,7 +72,7 @@ export interface ISceneApi {
    * @internal
    * @method
    */
-  removeFromScene(object: THREE.Object3D): void;
+  removeFromScene(object: THREE.Object3D, dispose?: boolean): void;
 
   /**
    * Добавляет объект в сцену и (опционально) выставляет ему слой.

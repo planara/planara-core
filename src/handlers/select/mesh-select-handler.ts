@@ -10,9 +10,9 @@ import type { IRaycastApi } from '@/interfaces/api';
 import { SelectMode } from '@planara/types';
 import { SelectEventType } from '@/types/event';
 // Events
-import { type EditorEvents, EventTopics } from '@/events';
+import { type EditorEvents, EventTopics } from '@/shared/events';
 // Constants
-import { HOVER_COLOR, SELECT_COLOR } from '@/constants';
+import { HOVER_COLOR, SELECT_COLOR } from '@/shared/constants';
 
 /**
  * Хендлер для выборки моделей.

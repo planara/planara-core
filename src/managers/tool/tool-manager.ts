@@ -9,7 +9,7 @@ import type { IPolicy } from '@/interfaces/policy';
 import { ToolType } from '@planara/types';
 import { FeatureType } from '@/types/feature';
 // Policy
-import { usePolicy } from '@/decorators';
+import { usePolicy } from '@/shared/decorators';
 
 @injectable()
 export class ToolManager implements IToolManager {

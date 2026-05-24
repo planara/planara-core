@@ -13,7 +13,9 @@ import type {
 // Types
 import type { RendererConfig } from '@planara/types';
 // Helpers
-import { markAsNotExportable } from '@/utils';
+import { markAsNotExportable } from '@/shared/utils';
+import type { IRendererInfoAccess } from '@/interfaces/api/renderer/renderer-info-access';
+import type { RendererInfoMetrics } from '@/types/renderer';
 
 /**
  * Базовый класс рендерера для работы с WebGL через Three.js.
@@ -46,6 +48,7 @@ export class Renderer
     IRendererCameraAccess,
     IRendererDomAccess,
     IRendererSceneAccess,
+    IRendererInfoAccess,
     IRenderable,
     Disposable
 {
@@ -253,6 +256,17 @@ export class Renderer
 
   public getScene(): THREE.Scene {
     return this.scene;
+  }
+
+  public getRendererInfo(): RendererInfoMetrics {
+    const info = this.renderer.info;
+
+    return {
+      drawCalls: info.render.calls,
+      triangles: info.render.triangles,
+      geometries: info.memory.geometries,
+      textures: info.memory.textures,
+    };
   }
 
   /**

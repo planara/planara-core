@@ -15,7 +15,7 @@ import {
 } from '@planara/types';
 import { FeatureType } from '@/types/feature';
 // Interfaces
-import type { IController } from '@/interfaces/controller';
+import type { IWorker } from '@/interfaces/worker';
 import type { IExportStore, ITransformStore } from '@/interfaces/store';
 import type { IMediator } from '@/interfaces/mediator';
 
@@ -30,7 +30,7 @@ export class EditorHub implements Disposable {
     @inject('IMediator') private _mediator: IMediator,
     @inject('EditorStore') private _store: ITransformStore,
     @inject('ExportStore') private _exportStore: IExportStore,
-    @inject('IController') private _controller: IController,
+    @inject('IWorker') private _worker: IWorker,
   ) {
     this.setSelectMode(SelectMode.Mesh);
     this.setToolMode(ToolType.Translate);
@@ -108,14 +108,14 @@ export class EditorHub implements Disposable {
    * Вызывается после создания хаба.
    */
   public start(): void {
-    this._controller.start();
+    this._worker.start();
   }
 
   /**
    * Останавливает редактор.
    */
   public stop(): void {
-    this._controller.stop();
+    this._worker.stop();
   }
 
   public getSelectionStats(): FigureTransform | null {

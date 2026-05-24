@@ -3,3 +3,4 @@ export * from './select-store';
 export * from './tool-store';
 export * from './transform-store';
 export * from './export-store';
+export * from './metrics-store';

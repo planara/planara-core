@@ -11,11 +11,11 @@ import { SelectMode } from '@planara/types';
 import type { FaceGroup } from '@/types/select';
 import { SelectEventType } from '@/types/event';
 // Events
-import { type EditorEvents, EventTopics } from '@/events';
+import { type EditorEvents, EventTopics } from '@/shared/events';
 // Constants
-import { HOVER_COLOR, SELECT_COLOR, OVERLAY_LAYER } from '@/constants';
+import { HOVER_COLOR, SELECT_COLOR, OVERLAY_LAYER } from '@/shared/constants';
 // Utils
-import { markAsProxyObject } from '@/utils';
+import { markAsProxyObject } from '@/shared/utils';
 
 /*
  * Сама идея схожа с поведением vertex/edge selection, взять прокси объекты и копировать геометрию модели на прокси

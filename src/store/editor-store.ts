@@ -10,7 +10,7 @@ import { makeAutoObservable } from 'mobx';
 import { DisplayMode, type FigureTransform, SelectMode, ToolType } from '@planara/types';
 import type { SelectedListener, TransformListener } from '@/types/listener';
 // Helpers
-import { toFigureTransform } from '@/utils';
+import { toFigureTransform } from '@/shared/utils';
 
 /** Store для всего редактора. */
 @injectable()
