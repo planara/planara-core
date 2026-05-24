@@ -1,5 +1,5 @@
 // IOC
-import { inject, injectable } from 'tsyringe';
+import { type Disposable, inject, injectable } from 'tsyringe';
 // Types
 import {
   BenchmarkTestStatus,
@@ -27,7 +27,7 @@ import type { Renderer } from '@/core';
  * @class
  */
 @injectable()
-export class BenchmarkHub {
+export class BenchmarkHub implements Disposable {
   public constructor(
     @inject('Renderer') private _renderer: Renderer,
     @inject('IMediator') private readonly _mediator: IMediator,
@@ -108,5 +108,11 @@ export class BenchmarkHub {
    */
   public stop(): void {
     this._worker.stop();
+  }
+
+  public dispose(): Promise<void> | void {
+    this._mediator.dispose();
+    this._worker.dispose();
+    this._store.clear();
   }
 }

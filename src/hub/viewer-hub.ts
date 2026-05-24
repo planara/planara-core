@@ -63,5 +63,6 @@ export class ViewerHub implements Disposable {
 
   public dispose(): Promise<void> | void {
     this._mediator.dispose();
+    this._worker.dispose();
   }
 }
