@@ -45,7 +45,7 @@ export class BenchmarkHub implements Disposable {
    * @public
    * @method
    */
-  public run(config: BenchmarkConfig): BenchmarkRunResult {
+  public async run(config: BenchmarkConfig): Promise<BenchmarkRunResult> {
     this._store.clear();
 
     const tests: BenchmarkTestRunResult[] = [];
@@ -55,6 +55,8 @@ export class BenchmarkHub implements Disposable {
         type: FeatureType.Benchmark,
         payload: [type, config.durationMs],
       });
+
+      await this._wait(config.durationMs + 300);
 
       tests.push({
         type,
@@ -114,5 +116,11 @@ export class BenchmarkHub implements Disposable {
     this._mediator.dispose();
     this._worker.dispose();
     this._store.clear();
+  }
+
+  private _wait(ms: number): Promise<void> {
+    return new Promise((resolve) => {
+      window.setTimeout(resolve, ms);
+    });
   }
 }
