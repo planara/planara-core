@@ -30,8 +30,8 @@ export class MetricsStore implements IMetricsStore {
   /** Дата создания текущего отчета. */
   private _createdAt = new Date().toISOString();
 
-  /** Метрики успешно выполненных тестов. */
-  private readonly _metrics = new Map<BenchmarkTestType, BenchmarkMetrics>();
+  /** Отчеты успешно выполненных тестов. */
+  private _tests: BenchmarkTestReport[] = [];
 
   /** Текущие live-метрики. */
   private _currentMetrics: BenchmarkMetrics | null = null;
@@ -45,12 +45,16 @@ export class MetricsStore implements IMetricsStore {
 
   public clear(): void {
     this._createdAt = new Date().toISOString();
-    this._metrics.clear();
+    this._tests = [];
     this.setCurrentMetrics(null);
   }
 
   public addMetrics(type: BenchmarkTestType, metrics: BenchmarkMetrics): void {
-    this._metrics.set(type, metrics);
+    this._tests.push({
+      type,
+      status: BenchmarkTestStatus.Success,
+      metrics,
+    });
   }
 
   public setCurrentMetrics(metrics: BenchmarkMetrics | null): void {
@@ -74,15 +78,9 @@ export class MetricsStore implements IMetricsStore {
   }
 
   public getReport(): BenchmarkReport {
-    const tests: BenchmarkTestReport[] = [...this._metrics.entries()].map(([type, metrics]) => ({
-      type,
-      status: BenchmarkTestStatus.Success,
-      metrics,
-    }));
-
     return {
       createdAt: this._createdAt,
-      tests,
+      tests: [...this._tests],
     };
   }
 }
