@@ -95,10 +95,6 @@ import type { RendererConfigInput } from '@planara/types';
 // Utils
 import { mergeRendererConfig, defaultRendererConfig } from '@/shared/utils';
 
-let editorContainer: DependencyContainer | null = null;
-let viewerContainer: DependencyContainer | null = null;
-let benchmarkContainer: DependencyContainer | null = null;
-
 function createBaseContainer(): DependencyContainer {
   return globalContainer.createChildContainer();
 }
@@ -386,45 +382,19 @@ export function createEditorContainer(
   canvas: HTMLCanvasElement,
   rendererConfig?: RendererConfigInput,
 ): DependencyContainer {
-  if (editorContainer) return editorContainer;
-
-  editorContainer = registerEditorContainer(createBaseContainer(), canvas, rendererConfig);
-
-  return editorContainer;
+  return registerEditorContainer(createBaseContainer(), canvas, rendererConfig);
 }
 
 export function createViewerContainer(
   canvas: HTMLCanvasElement,
   rendererConfig?: RendererConfigInput,
 ): DependencyContainer {
-  if (viewerContainer) return viewerContainer;
-
-  viewerContainer = registerViewerContainer(createBaseContainer(), canvas, rendererConfig);
-
-  return viewerContainer;
+  return registerViewerContainer(createBaseContainer(), canvas, rendererConfig);
 }
 
 export function createBenchmarkContainer(
   canvas: HTMLCanvasElement,
   rendererConfig?: RendererConfigInput,
 ): DependencyContainer {
-  if (benchmarkContainer) return benchmarkContainer;
-
-  benchmarkContainer = registerBenchmarkContainer(createBaseContainer(), canvas, rendererConfig);
-
-  return benchmarkContainer;
+  return registerBenchmarkContainer(createBaseContainer(), canvas, rendererConfig);
 }
-
-export function clearEditorContainer(): void {
-  editorContainer = null;
-}
-
-export function clearViewerContainer(): void {
-  viewerContainer = null;
-}
-
-export function clearBenchmarkContainer(): void {
-  benchmarkContainer = null;
-}
-
-export { editorContainer, viewerContainer, benchmarkContainer };
