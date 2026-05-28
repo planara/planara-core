@@ -15,7 +15,6 @@ import type { IMetricsStore } from '@/interfaces/store';
 import type { MetricsListener } from '@/types/listener';
 import type { IWorker } from '@/interfaces/worker';
 import type { Renderer } from '@/core';
-import { clearBenchmarkContainer } from '@/shared/ioc/container';
 
 /**
  * Хаб benchmark-тестирования.
@@ -117,7 +116,6 @@ export class BenchmarkHub implements Disposable {
     this._mediator.dispose();
     this._worker.dispose();
     this._store.clear();
-    clearBenchmarkContainer();
   }
 
   private _wait(ms: number): Promise<void> {
