@@ -130,7 +130,6 @@ function registerCore(container: DependencyContainer): void {
 }
 
 function registerBenchmarkCore(container: DependencyContainer): void {
-  registerCore(container);
   container.register('IRendererInfoAccess', { useToken: 'Renderer' });
 }
 
@@ -167,8 +166,6 @@ function registerViewerApi(container: DependencyContainer): void {
 }
 
 function registerBenchmarkApi(container: DependencyContainer): void {
-  registerEditorApi(container);
-
   container.registerSingleton<IRendererInfoApi>('IRendererInfoApi', RendererInfoApi);
 }
 
@@ -199,8 +196,6 @@ function registerViewerModules(container: DependencyContainer): void {
 }
 
 function registerBenchmarkModules(container: DependencyContainer): void {
-  registerEditorModules(container);
-
   container.registerSingleton('MetricsModule', MetricsModule);
 
   container.register('IObserverModule', { useToken: 'MetricsModule' });
@@ -418,6 +413,18 @@ export function createBenchmarkContainer(
   benchmarkContainer = registerBenchmarkContainer(createBaseContainer(), canvas, rendererConfig);
 
   return benchmarkContainer;
+}
+
+export function clearEditorContainer(): void {
+  editorContainer = null;
+}
+
+export function clearViewerContainer(): void {
+  viewerContainer = null;
+}
+
+export function clearBenchmarkContainer(): void {
+  benchmarkContainer = null;
 }
 
 export { editorContainer, viewerContainer, benchmarkContainer };

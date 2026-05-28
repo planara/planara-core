@@ -18,6 +18,7 @@ import { FeatureType } from '@/types/feature';
 import type { IWorker } from '@/interfaces/worker';
 import type { IExportStore, ITransformStore } from '@/interfaces/store';
 import type { IMediator } from '@/interfaces/mediator';
+import { clearEditorContainer } from '@/shared/ioc/container';
 
 /**
  * Хаб для управления редактированием
@@ -140,5 +141,6 @@ export class EditorHub implements Disposable {
   public dispose(): Promise<void> | void {
     this._mediator.dispose();
     this._worker.dispose();
+    clearEditorContainer();
   }
 }
