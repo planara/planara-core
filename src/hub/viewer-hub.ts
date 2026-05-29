@@ -8,6 +8,7 @@ import { FeatureType } from '@/types/feature';
 // Interfaces
 import type { IWorker } from '@/interfaces/worker';
 import type { IMediator } from '@/interfaces/mediator';
+import { clearViewerHub } from '@/hub/index';
 
 /**
  * Хаб для управления вьювером
@@ -64,5 +65,6 @@ export class ViewerHub implements Disposable {
   public dispose(): Promise<void> | void {
     this._mediator.dispose();
     this._worker.dispose();
+    clearViewerHub();
   }
 }

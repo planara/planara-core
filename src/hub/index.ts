@@ -13,92 +13,134 @@ import type { BenchmarkHub } from '@/hub/benchmark-hub';
 // Types
 import type { RendererConfigInput } from '@planara/types';
 
-/** IOC-контейнер */
-let _container: DependencyContainer | null = null;
+/** IOC-контейнер редактора */
+let editorContainer: DependencyContainer | null = null;
+
+/** IOC-контейнер вьювера */
+let viewerContainer: DependencyContainer | null = null;
+
+/** IOC-контейнер бенчмарка */
+let benchmarkContainer: DependencyContainer | null = null;
 
 /**
  * Инициализирует редактор и возвращает хаб.
- * Вызывать один раз при старте (когда есть canvas).
+ *
+ * @remarks
+ * Каждый вызов создает новый независимый контейнер редактора.
+ *
  * @public
  */
 export const createEditorHub = (
   canvas: HTMLCanvasElement,
   rendererConfig?: RendererConfigInput,
 ): EditorHub => {
-  if (_container) {
-    return _container.resolve<EditorHub>('EditorHub');
-  }
+  const container = createEditorContainer(canvas, rendererConfig);
 
-  _container = createEditorContainer(canvas, rendererConfig);
-  return _container.resolve<EditorHub>('EditorHub');
+  editorContainer = container;
+
+  return container.resolve<EditorHub>('EditorHub');
 };
 
 /**
- * Возвращает уже созданный хаб, если редактор инициализирован.
+ * Возвращает последний созданный хаб редактора.
+ *
  * @public
  */
 export const getEditorHub = (): EditorHub => {
-  if (!_container) {
+  if (!editorContainer) {
     throw new Error('EditorHub is not initialized. Call createEditorHub(canvas) first.');
   }
 
-  return _container.resolve<EditorHub>('EditorHub');
+  return editorContainer.resolve<EditorHub>('EditorHub');
+};
+
+/**
+ * Сбрасывает текущий контейнер редактора.
+ *
+ * @public
+ */
+export const clearEditorHub = (): void => {
+  editorContainer = null;
 };
 
 /**
  * Инициализирует вьювер и возвращает хаб.
- * Вызывать один раз при старте (когда есть canvas).
+ *
+ * @remarks
+ * Каждый вызов создает новый независимый контейнер вьювера.
+ *
  * @public
  */
 export const createViewerHub = (
   canvas: HTMLCanvasElement,
   rendererConfig?: RendererConfigInput,
 ): ViewerHub => {
-  if (_container) {
-    return _container.resolve<ViewerHub>('ViewerHub');
-  }
+  const container = createViewerContainer(canvas, rendererConfig);
 
-  _container = createViewerContainer(canvas, rendererConfig);
-  return _container.resolve<ViewerHub>('ViewerHub');
+  viewerContainer = container;
+
+  return container.resolve<ViewerHub>('ViewerHub');
 };
 
 /**
- * Возвращает уже созданный хаб, если вьювер инициализирован.
+ * Возвращает последний созданный хаб вьювера.
+ *
  * @public
  */
 export const getViewerHub = (): ViewerHub => {
-  if (!_container) {
+  if (!viewerContainer) {
     throw new Error('ViewerHub is not initialized. Call createViewerHub(canvas) first.');
   }
 
-  return _container.resolve<ViewerHub>('ViewerHub');
+  return viewerContainer.resolve<ViewerHub>('ViewerHub');
+};
+
+/**
+ * Сбрасывает текущий контейнер вьювера.
+ *
+ * @public
+ */
+export const clearViewerHub = (): void => {
+  viewerContainer = null;
 };
 
 /**
  * Инициализирует бенчмарк и возвращает хаб.
- * Вызывать один раз при старте (когда есть canvas).
+ *
+ * @remarks
+ * Каждый вызов создает новый независимый контейнер бенчмарка.
+ *
  * @public
  */
 export const createBenchmarkHub = (
   canvas: HTMLCanvasElement,
   rendererConfig?: RendererConfigInput,
 ): BenchmarkHub => {
-  if (_container) {
-    return _container.resolve<BenchmarkHub>('BenchmarkHub');
-  }
+  const container = createBenchmarkContainer(canvas, rendererConfig);
 
-  _container = createBenchmarkContainer(canvas, rendererConfig);
-  return _container.resolve<BenchmarkHub>('BenchmarkHub');
+  benchmarkContainer = container;
+
+  return container.resolve<BenchmarkHub>('BenchmarkHub');
 };
 
 /**
- * Возвращает уже созданный хаб, если бенчмарк инициализирован.
+ * Возвращает последний созданный хаб бенчмарка.
+ *
  * @public
  */
 export const getBenchmarkHub = (): BenchmarkHub => {
-  if (!_container) {
-    throw new Error('ViewerHub is not initialized. Call createBenchmarkHub(canvas) first.');
+  if (!benchmarkContainer) {
+    throw new Error('BenchmarkHub is not initialized. Call createBenchmarkHub(canvas) first.');
   }
 
-  return _container.resolve<BenchmarkHub>('BenchmarkHub');
+  return benchmarkContainer.resolve<BenchmarkHub>('BenchmarkHub');
+};
+
+/**
+ * Сбрасывает текущий контейнер бенчмарка.
+ *
+ * @public
+ */
+export const clearBenchmarkHub = (): void => {
+  benchmarkContainer = null;
 };
