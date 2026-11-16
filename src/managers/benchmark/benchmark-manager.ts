@@ -6,6 +6,8 @@ import { BenchmarkTestType } from '@planara/types';
 // Interfaces
 import type { IBenchmarkManager } from '@/interfaces/manager';
 import type { IBenchmarkHandler, IHandler } from '@/interfaces/handler';
+// Utils
+import { disposeAll } from '@/shared/utils';
 
 /**
  * Менеджер benchmark-тестирования.
@@ -44,13 +46,15 @@ export class BenchmarkManager implements IBenchmarkManager {
     this._handlers.get(this._currentMode)?.handle(durationMs);
   }
 
-  public dispose(): Promise<void> | void {
-    // Очистка хендлеров
-    if (this._handlers) {
-      this._handlers.clear();
-    }
+  /**
+   * Освобождает хендлеры benchmark-тестов, включая хендлер активного замера.
+   *
+   * @returns Promise завершения очистки хендлеров и созданных ими временных объектов
+   */
+  public dispose(): Promise<void> {
+    const handlers = [...this._handlers.values()];
+    this._handlers.clear();
 
-    // Возвращение дефолтного значения
-    this._currentMode = BenchmarkTestType.Light;
+    return disposeAll(handlers);
   }
 }

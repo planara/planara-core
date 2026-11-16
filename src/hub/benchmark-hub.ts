@@ -9,44 +9,59 @@ import {
   type BenchmarkTestRunResult,
 } from '@planara/types';
 import { FeatureType } from '@/types/feature';
+import type { MetricsListener } from '@/types/listener';
 // Interfaces
 import type { IMediator } from '@/interfaces/mediator';
 import type { IMetricsStore } from '@/interfaces/store';
-import type { MetricsListener } from '@/types/listener';
 import type { IWorker } from '@/interfaces/worker';
+// Core
 import type { Renderer } from '@/core';
+// Hub
 import { clearBenchmarkHub } from '@/hub/index';
+// Utils
+import { disposeAll } from '@/shared/utils/dispose-all';
+import { waitForBenchmark } from '@/shared/utils/wait-for-benchmark';
 
 /**
- * Хаб benchmark-тестирования.
- *
- * @remarks
- * Предоставляет публичный API для запуска benchmark-тестов,
- * получения итогового отчета и подписки на live-обновления метрик.
+ * Управляет серией benchmark-тестов и предоставляет доступ к метрикам.
  *
  * @public
- * @class
  */
 @injectable()
 export class BenchmarkHub implements Disposable {
+  /** Прерывает ожидание внутри `run()` при закрытии хаба. */
+  private readonly _lifetime = new AbortController();
+
+  /** Promise очистки ресурсов, общий для повторных вызовов `dispose()`. */
+  private _disposal: Promise<void> | null = null;
+
+  /**
+   * @param _renderer - рендерер тестовой сцены
+   * @param _mediator - отправка команд запуска тестов
+   * @param _store - хранилище результатов и источник обновлений метрик
+   * @param _worker - управление циклом рендера
+   */
   public constructor(
-    @inject('Renderer') private _renderer: Renderer,
+    @inject('Renderer') private readonly _renderer: Renderer,
     @inject('IMediator') private readonly _mediator: IMediator,
     @inject('MetricsStore') private readonly _store: IMetricsStore,
-    @inject('IWorker') private _worker: IWorker,
+    @inject('IWorker') private readonly _worker: IWorker,
   ) {}
 
   /**
-   * Запускает benchmark-тестирование.
+   * Последовательно запускает тесты, перечисленные в конфигурации.
    *
-   * @param config - конфигурация benchmark-тестирования
+   * @remarks
+   * Если хаб закрывается во время ожидания, возвращает уже записанные статусы.
+   * Следующие тесты серии при этом не запускаются.
    *
-   * @returns Краткий результат выполнения запрошенных тестов
-   *
-   * @public
-   * @method
+   * @param config - список тестов и длительность одного замера
+   * @returns Результаты пройденной части серии
+   * @throws {@link Error}, если освобождение ресурсов хаба уже началось
    */
   public async run(config: BenchmarkConfig): Promise<BenchmarkRunResult> {
+    if (this._disposal) throw new Error('Hub has been disposed');
+
     this._store.clear();
 
     const tests: BenchmarkTestRunResult[] = [];
@@ -57,7 +72,11 @@ export class BenchmarkHub implements Disposable {
         payload: [type, config.durationMs],
       });
 
-      await this._wait(config.durationMs + 300);
+      // Mediator возвращает ответ синхронно. Хаб пока использует прежнюю
+      // задержку между тестами, но теперь её можно прервать при закрытии.
+      await waitForBenchmark(config.durationMs + 300, this._lifetime.signal);
+
+      if (this._disposal) break;
 
       tests.push({
         type,
@@ -69,60 +88,70 @@ export class BenchmarkHub implements Disposable {
   }
 
   /**
-   * Возвращает отчет по успешно выполненным benchmark-тестам.
+   * Возвращает отчёт по накопленным метрикам.
    *
-   * @returns Отчет benchmark-тестирования
-   *
-   * @public
-   * @method
+   * @returns Отчёт из хранилища текущего хаба
    */
   public getReport(): BenchmarkReport {
     return this._store.getReport();
   }
 
   /**
-   * Регистрирует слушатель обновления live-метрик.
+   * Подписывает слушателя на обновления метрик.
    *
-   * @param listener - обработчик обновления метрик
-   *
-   * @returns Функция отписки от обновлений
-   *
-   * @public
-   * @method
+   * @param listener - обработчик обновления
+   * @returns Функция отписки
    */
   public subscribeMetrics(listener: MetricsListener): () => void {
     return this._store.subscribe(listener);
   }
 
-  public resizeRenderer() {
+  /** Обновляет размеры рендера при изменении размера области просмотра. */
+  public resizeRenderer(): void {
     this._renderer.resize();
   }
 
   /**
-   * Запускает редактор.
-   * Вызывается после создания хаба.
+   * Запускает или возобновляет рендер тестовой сцены.
+   *
+   * @throws {@link Error}, если освобождение ресурсов хаба уже началось
    */
   public start(): void {
+    if (this._disposal) throw new Error('Hub has been disposed');
+
     this._worker.start();
   }
 
   /**
-   * Останавливает редактор.
+   * Приостанавливает рендер тестовой сцены.
+   * Таймер активного замера продолжает отсчёт.
    */
   public stop(): void {
     this._worker.stop();
   }
 
-  public dispose(): Promise<void> | void {
-    this._mediator.dispose();
-    this._worker.dispose();
-    this._store.clear();
-    clearBenchmarkHub();
-  }
+  /**
+   * Останавливает рендер, прерывает серию и освобождает ресурсы хаба.
+   *
+   * @remarks
+   * Хендлеры завершают свои замеры и удаляют тестовые объекты, пока сцена
+   * ещё доступна. Затем освобождаются модули воркера и сам рендерер.
+   *
+   * @returns Promise завершения очистки. Повторный вызов возвращает тот же Promise.
+   */
+  public dispose(): Promise<void> {
+    if (this._disposal) return this._disposal;
 
-  private _wait(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-      window.setTimeout(resolve, ms);
-    });
+    this._worker.stop();
+    clearBenchmarkHub(this);
+
+    this._disposal = Promise.resolve().then(() =>
+      disposeAll([this._mediator, this._worker, this._renderer]),
+    );
+
+    this._lifetime.abort();
+    this._store.clear();
+
+    return this._disposal;
   }
 }

@@ -8,6 +8,8 @@ import type { ICommand } from '@/interfaces/command';
 // Types
 import type { FeatureType } from '@/types/feature';
 import { type IResponse, ResponseType } from '@planara/types';
+// Utils
+import { disposeAll } from '@/shared/utils';
 
 /** */
 @injectable()
@@ -45,10 +47,19 @@ export class Mediator implements IMediator {
     return pipeline();
   }
 
-  public dispose(): Promise<void> | void {
-    // Очистка хендлеров
-    if (this._managers) {
-      this._managers.clear();
-    }
+  /**
+   * Удаляет маршруты команд и освобождает зарегистрированные менеджеры.
+   *
+   * @remarks
+   * Таблица маршрутов очищается до начала асинхронного освобождения.
+   * Последующие команды больше не попадут в завершающие работу менеджеры.
+   *
+   * @returns Promise завершения очистки менеджеров
+   */
+  public dispose(): Promise<void> {
+    const managers = [...this._managers.values()];
+    this._managers.clear();
+
+    return disposeAll(managers);
   }
 }

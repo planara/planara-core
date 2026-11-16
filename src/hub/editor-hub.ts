@@ -18,7 +18,10 @@ import { FeatureType } from '@/types/feature';
 import type { IWorker } from '@/interfaces/worker';
 import type { IExportStore, ITransformStore } from '@/interfaces/store';
 import type { IMediator } from '@/interfaces/mediator';
+// Hub
 import { clearEditorHub } from '@/hub/index';
+// Utils
+import { disposeAll } from '@/shared/utils';
 
 /**
  * Хаб для управления редактированием
@@ -26,6 +29,13 @@ import { clearEditorHub } from '@/hub/index';
  */
 @injectable()
 export class EditorHub implements Disposable {
+  /**
+   * Promise освобождения ресурсов этого экземпляра.
+   * Сохраняется с первого вызова `dispose()`, чтобы все вызывающие
+   * могли дождаться завершения одной операции.
+   */
+  private _disposal: Promise<void> | null = null;
+
   public constructor(
     @inject('Renderer') private _renderer: Renderer,
     @inject('IMediator') private _mediator: IMediator,
@@ -105,10 +115,13 @@ export class EditorHub implements Disposable {
   }
 
   /**
-   * Запускает редактор.
-   * Вызывается после создания хаба.
+   * Запускает цикл рендера или возобновляет его после `stop()`.
+   *
+   * @throws {@link Error}, если уже началось освобождение ресурсов хаба
    */
   public start(): void {
+    if (this._disposal) throw new Error('Hub has been disposed');
+
     this._worker.start();
   }
 
@@ -138,9 +151,26 @@ export class EditorHub implements Disposable {
     };
   }
 
-  public dispose(): Promise<void> | void {
-    this._mediator.dispose();
-    this._worker.dispose();
-    clearEditorHub();
+  /**
+   * Останавливает рендер и освобождает ресурсы редактора.
+   *
+   * @remarks
+   * Кадры останавливаются до возврата из метода. Затем освобождаются менеджеры
+   * и хендлеры, модули и в последнюю очередь renderer. Благодаря этому хендлеры
+   * могут снять оверлеи со сцены, а модули — удалить обработчики с canvas.
+   *
+   * @returns Promise завершения очистки. Повторный вызов возвращает тот же Promise.
+   */
+  public dispose(): Promise<void> {
+    if (this._disposal) return this._disposal;
+
+    this._worker.stop();
+    clearEditorHub(this);
+
+    this._disposal = Promise.resolve().then(() =>
+      disposeAll([this._mediator, this._worker, this._renderer]),
+    );
+
+    return this._disposal;
   }
 }

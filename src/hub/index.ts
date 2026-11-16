@@ -55,15 +55,6 @@ export const getEditorHub = (): EditorHub => {
 };
 
 /**
- * Сбрасывает текущий контейнер редактора.
- *
- * @public
- */
-export const clearEditorHub = (): void => {
-  editorContainer = null;
-};
-
-/**
  * Инициализирует вьювер и возвращает хаб.
  *
  * @remarks
@@ -93,15 +84,6 @@ export const getViewerHub = (): ViewerHub => {
   }
 
   return viewerContainer.resolve<ViewerHub>('ViewerHub');
-};
-
-/**
- * Сбрасывает текущий контейнер вьювера.
- *
- * @public
- */
-export const clearViewerHub = (): void => {
-  viewerContainer = null;
 };
 
 /**
@@ -137,10 +119,43 @@ export const getBenchmarkHub = (): BenchmarkHub => {
 };
 
 /**
- * Сбрасывает текущий контейнер бенчмарка.
+ * Сбрасывает ссылку, используемую `getEditorHub()`.
+ *
+ * @param owner - редактор, инициировавший сброс. Если передан, ссылка сбрасывается
+ * только при совпадении с текущим редактором. Без аргумента сброс безусловный.
  *
  * @public
  */
-export const clearBenchmarkHub = (): void => {
+export const clearEditorHub = (owner?: EditorHub): void => {
+  if (owner && editorContainer?.resolve<EditorHub>('EditorHub') !== owner) return;
+
+  editorContainer = null;
+};
+
+/**
+ * Сбрасывает ссылку, используемую `getViewerHub()`.
+ *
+ * @param owner - вьювер, инициировавший сброс. Если передан, ссылка сбрасывается
+ * только при совпадении с текущим вьювером. Без аргумента сброс безусловный.
+ *
+ * @public
+ */
+export const clearViewerHub = (owner?: ViewerHub): void => {
+  if (owner && viewerContainer?.resolve<ViewerHub>('ViewerHub') !== owner) return;
+
+  viewerContainer = null;
+};
+
+/**
+ * Сбрасывает ссылку, используемую `getBenchmarkHub()`.
+ *
+ * @param owner - benchmark-хаб, инициировавший сброс. Если передан, ссылка
+ * сбрасывается только при совпадении с текущим хабом. Без аргумента сброс безусловный.
+ *
+ * @public
+ */
+export const clearBenchmarkHub = (owner?: BenchmarkHub): void => {
+  if (owner && benchmarkContainer?.resolve<BenchmarkHub>('BenchmarkHub') !== owner) return;
+
   benchmarkContainer = null;
 };

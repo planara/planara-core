@@ -7,6 +7,8 @@ import type { IDisplayStore } from '@/interfaces/store';
 // Types
 import { DisplayMode } from '@planara/types';
 import { FeatureType } from '@/types/feature';
+// Utils
+import { disposeAll } from '@/shared/utils';
 
 /**
  * Менеджер для управления отображением
@@ -47,15 +49,19 @@ export class DisplayManager implements IDisplayManager {
     this._store.setDisplayMode(this._currentMode);
   }
 
-  /** Освобождает ресурсы менеджера. */
-  public dispose(): Promise<void> | void {
-    // Очистка хендлеров
-    if (this._handlers) {
-      this._handlers.clear();
-    }
+  /**
+   * Освобождает хендлеры режимов отображения.
+   *
+   * @remarks
+   * Каждый хендлер завершает собственный режим. Менеджер при уничтожении
+   * не публикует переключение режима в store.
+   *
+   * @returns Promise завершения очистки хендлеров отображения
+   */
+  public dispose(): Promise<void> {
+    const handlers = [...this._handlers.values()];
+    this._handlers.clear();
 
-    // Возвращение дефолтного значения
-    this._currentMode = DisplayMode.Plane;
-    this._store.setDisplayMode(this._currentMode);
+    return disposeAll(handlers);
   }
 }

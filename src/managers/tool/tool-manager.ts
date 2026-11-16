@@ -10,6 +10,8 @@ import { ToolType } from '@planara/types';
 import { FeatureType } from '@/types/feature';
 // Policy
 import { usePolicy } from '@/shared/decorators';
+// Utils
+import { disposeAll } from '@/shared/utils';
 
 @injectable()
 export class ToolManager implements IToolManager {
@@ -54,16 +56,17 @@ export class ToolManager implements IToolManager {
     this._handlers.get(this._currentTool)?.handle();
   }
 
-  /** Освобождает ресурсы менеджера. */
-  public dispose(): Promise<void> | void {
+  /**
+   * Снимает подписку на изменение выбранного объекта и освобождает хендлеры инструментов.
+   *
+   * @returns Promise завершения очистки хендлеров, включая их подписки на трансформацию
+   */
+  public dispose(): Promise<void> {
     this._unsubSelected?.();
-    // Очистка хендлеров
-    if (this._handlers) {
-      this._handlers.clear();
-    }
 
-    // Возвращение дефолтного значения
-    this._currentTool = ToolType.Translate;
-    this._store.setToolType(this._currentTool);
+    const handlers = [...this._handlers.values()];
+    this._handlers.clear();
+
+    return disposeAll(handlers);
   }
 }

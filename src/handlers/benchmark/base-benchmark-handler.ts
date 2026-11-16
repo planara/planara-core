@@ -1,39 +1,48 @@
 // Core
 import * as THREE from 'three';
 // Types
-import { type BenchmarkTestType } from '@planara/types';
+import type { BenchmarkTestType } from '@planara/types';
 // Interfaces
 import type { IBenchmarkHandler } from '@/interfaces/handler';
 import type { IInteractionApi, IMetricsApi, ISceneApi } from '@/interfaces/api';
 import type { IMetricsStore } from '@/interfaces/store';
+// Utils
+import { waitForBenchmark } from '@/shared/utils/wait-for-benchmark';
 
 /**
- * Базовый хендлер benchmark-теста.
+ * Базовый хендлер одного benchmark-теста.
  *
  * @remarks
- * Содержит общий жизненный цикл benchmark-сценария:
- * подготовку группы, запуск метрик, ожидание, остановку метрик
- * и очистку временных объектов.
+ * Создаёт тестовую группу на сцене, собирает метрики в течение заданного
+ * времени и сохраняет результат. Конкретный хендлер определяет состав группы.
  *
  * @internal
- * @abstract
- * @class
  */
 export abstract class BaseBenchmarkHandler implements IBenchmarkHandler {
-  /** Тип benchmark-теста. */
+  /** Тип теста, под которым сохраняется результат замера. */
   public abstract readonly mode: BenchmarkTestType;
 
-  /** Название группы тестовых объектов. */
+  /** Имя группы тестовых объектов в сцене. */
   protected abstract readonly groupName: string;
 
-  /** Количество объектов в тестовой сцене. */
+  /** Количество объектов, передаваемое в статистику замера. */
   protected abstract readonly objectsCount: number;
 
-  /** Группа объектов текущего benchmark-теста. */
+  /** Группа текущего теста. Удаляется со сцены при откате. */
   protected _group: THREE.Group | null = null;
 
+  /** Контроллер ожидания текущего замера. При откате прерывает `handle()`. */
+  private _waitController: AbortController | null = null;
+
+  /** ID интервала, который публикует промежуточные метрики в store. */
   private _liveTimerId: number | null = null;
 
+  /**
+   * @param _sceneApi - управление тестовой группой на сцене
+   * @param _interactionApi - управление пользовательским вводом во время замера
+   * @param _metricsApi - сбор метрик рендера
+   * @param _store - хранилище промежуточных и итоговых метрик
+   */
   protected constructor(
     protected readonly _sceneApi: ISceneApi,
     protected readonly _interactionApi: IInteractionApi,
@@ -42,54 +51,59 @@ export abstract class BaseBenchmarkHandler implements IBenchmarkHandler {
   ) {}
 
   /**
-   * Выполняет benchmark-тест.
+   * Подготавливает тестовую сцену и собирает метрики.
    *
-   * @param durationMs - длительность выполнения теста в миллисекундах
+   * @remarks
+   * Каждый вызов получает собственный контроллер. Если во время ожидания
+   * произошёл откат, этот вызов завершается до записи итоговых метрик.
    *
-   * @internal
-   * @method
+   * @param durationMs - длительность замера в миллисекундах
+   * @returns Promise завершения или отмены замера
    */
   public async handle(durationMs: number): Promise<void> {
-    // Выключение обработки пользовательского ввода
+    this._waitController?.abort();
+
+    const controller = new AbortController();
+    this._waitController = controller;
+
     this._interactionApi.setInteractionEnabled(false);
-    // Подготовка сцены под тестирование
     this._prepareScene();
 
-    // Запуск сборов метрик
     this._metricsApi.start(this.objectsCount);
     this._startLiveMetrics();
 
-    // Проведение тестирования
-    await this._wait(durationMs);
+    await waitForBenchmark(durationMs, controller.signal);
 
-    // Остановка сбора метрик
+    // После rollback() ресурсы сцены или сборщик метрик уже могли освободить.
+    if (controller.signal.aborted) return;
+
+    this._waitController = null;
     this._stopLiveMetrics();
     this._metricsApi.stop();
 
-    // Получение метрик
     const metrics = this._metricsApi.getMetrics();
 
-    // Сохранение метрик
     this._store.setCurrentMetrics(metrics);
     this._store.addMetrics(this.mode, metrics);
 
-    // Включение пользовательского ввода
     this._interactionApi.setInteractionEnabled(true);
   }
 
   /**
-   * Выполняет откат действий хендлера.
+   * Отменяет текущий замер, восстанавливает ввод и удаляет тестовую группу.
    *
-   * @internal
-   * @method
+   * @remarks
+   * Вызывается менеджером перед переключением теста и при освобождении хендлера.
    */
   public rollback(): void {
+    this._waitController?.abort();
+    this._waitController = null;
+
     this._interactionApi.setInteractionEnabled(true);
     this._stopLiveMetrics();
 
     this._metricsApi.stop();
     this._metricsApi.reset();
-
     this._store.setCurrentMetrics(null);
 
     if (!this._group) return;
@@ -99,27 +113,19 @@ export abstract class BaseBenchmarkHandler implements IBenchmarkHandler {
     this._group = null;
   }
 
-  /** Освобождает ресурсы хендлера. */
-  public dispose(): Promise<void> | void {
+  /** Завершает активный замер и освобождает ресурсы теста. */
+  public dispose(): void {
     this.rollback();
   }
 
   /**
-   * Заполняет группу объектами тестовой сцены.
+   * Наполняет группу объектами конкретного теста.
    *
-   * @param group - группа benchmark-теста
-   *
-   * @internal
-   * @abstract
+   * @param group - группа, которая будет добавлена на сцену
    */
   protected abstract fillGroup(group: THREE.Group): void;
 
-  /**
-   * Подготавливает тестовую сцену.
-   *
-   * @private
-   * @method
-   */
+  /** Создаёт группу, наполняет её тестовыми объектами и добавляет на сцену. */
   private _prepareScene(): void {
     const group = new THREE.Group();
     group.name = this.groupName;
@@ -130,22 +136,7 @@ export abstract class BaseBenchmarkHandler implements IBenchmarkHandler {
     this._sceneApi.addToScene(group);
   }
 
-  /**
-   * Ожидает указанное количество миллисекунд.
-   *
-   * @param ms - длительность ожидания
-   *
-   * @returns Promise, завершающийся после указанного времени
-   *
-   * @private
-   * @method
-   */
-  private _wait(ms: number): Promise<void> {
-    return new Promise((resolve) => {
-      window.setTimeout(resolve, ms);
-    });
-  }
-
+  /** Запускает публикацию промежуточных метрик каждые 250 мс. */
   private _startLiveMetrics(): void {
     this._stopLiveMetrics();
 
@@ -154,6 +145,7 @@ export abstract class BaseBenchmarkHandler implements IBenchmarkHandler {
     }, 250);
   }
 
+  /** Останавливает публикацию промежуточных метрик. */
   private _stopLiveMetrics(): void {
     if (this._liveTimerId === null) return;
 

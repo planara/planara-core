@@ -10,6 +10,8 @@ import { SelectEventType } from '@/types/event';
 import type { ISelectHandler, IHandler } from '@/interfaces/handler';
 import type { ISelectManager } from '@/interfaces/manager';
 import type { ISelectStore } from '@/interfaces/store';
+// Utils
+import { disposeAll } from '@/shared/utils';
 
 /**
  * Менеджер, который управляет режимами выборки.
@@ -71,16 +73,22 @@ export class SelectManager implements ISelectManager {
     handler?.handle(payload, SelectEventType.Click);
   };
 
-  /** Освобождает ресурсы менеджера. */
-  public dispose(): Promise<void> | void {
-    // Очистка хендлеров
-    if (this._handlers) {
-      this._handlers.clear();
-    }
-
-    // Отписка от событий
+  /**
+   * Снимает подписки на наведение и клик, затем освобождает хендлеры выбора.
+   *
+   * @remarks
+   * Подписки снимаются первыми, чтобы новое событие выбора не попало в хендлер,
+   * который уже удаляет со сцены подсветку или выбранный элемент.
+   *
+   * @returns Promise завершения очистки хендлеров выбора
+   */
+  public dispose(): Promise<void> {
     this._eventBus.off(EventTopics.SelectHover, this._onHover);
-    this._currentMode = SelectMode.Mesh;
-    this._store.setSelectMode(this._currentMode);
+    this._eventBus.off(EventTopics.SelectClick, this._onClick);
+
+    const handlers = [...this._handlers.values()];
+    this._handlers.clear();
+
+    return disposeAll(handlers);
   }
 }
