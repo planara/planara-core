@@ -4,55 +4,59 @@ import { inject, injectable, injectAll } from 'tsyringe';
 import type { IWorker } from '@/interfaces/worker';
 import type { IRenderable } from '@/interfaces/api/renderer';
 import type {
-  IRuntimeModule,
-  IRenderableModule,
-  IUpdatableModule,
   IObserverModule,
+  IRenderableModule,
+  IRuntimeModule,
+  IUpdatableModule,
 } from '@/interfaces/module';
+// Utils
+import { disposeAll } from '@/shared/utils';
+// Types
+import { WorkerState } from '@/types/worker';
+
 /**
- * Воркер для оркестрации жизненного цикла модулей и цикла рендеринга.
+ * Управляет инициализацией модулей и циклом рендера одного экземпляра редактора.
  *
  * @remarks
- * Отвечает за:
- * - инициализацию всех модулей ({@link `IRuntimeModule`}, {@link `IUpdatableModule`}, {@link `IRenderableModule`})
- * - запуск анимационного цикла (`requestAnimationFrame`)
- * - вызов `update()` у модулей перед рендерингом
- * - вызов `render()` у рендерера
- * - вызов `render()` у модулей после рендеринга
- * - остановку цикла и очистку ресурсов
- *
- * @see {@link IWorker} - интерфейс воркера
- * @see {@link IRuntimeModule} - модули с инициализацией
- * @see {@link IUpdatableModule} - модули с обновлением каждый кадр
- * @see {@link IRenderableModule} - модули с кастомным рендерингом
- * @see {@link IRenderable} - рендерер
+ * Первый запуск инициализирует модули. После паузы воркер продолжает рендер
+ * с теми же экземплярами. При уничтожении останавливает кадры и освобождает модули.
  *
  * @internal
- * @class
  */
 @injectable()
 export class RendererWorker implements IWorker {
-  /**
-   * ID анимационного цикла (для остановки)
-   *
-   * @private
-   * @member
-   */
+  /** Текущее состояние жизненного цикла воркера. */
+  private _state: WorkerState = WorkerState.New;
+
+  /** ID ожидающего кадра. Сбрасывается при входе в callback или после отмены кадра. */
   private _animationId: number | null = null;
 
   /**
-   * Конструктор контроллера.
+   * Номер запуска, которому принадлежит выполняемый кадр.
    *
-   * @param _updatable - модули, требующие обновления каждый кадр
-   * @param _renderable - модули, требующие кастомного рендеринга
-   * @param _observers - модули, наблюдающие за приложением
-   * @param _runtime - модули, требующие инициализации
-   * @param _renderer - рендерер (должен реализовывать `IRenderable`)
-   *
-   * @internal
-   * @constructor
+   * @remarks
+   * Изменяется при запуске и остановке. Если модуль вызывает `stop()` из `update()`,
+   * текущий callback уже исполняется. По изменившемуся номеру он определяет,
+   * что должен завершиться до рендера или планирования следующего кадра.
    */
-  constructor(
+  private _run = 0;
+
+  /**
+   * Модули в порядке инициализации.
+   *
+   * Один экземпляр может выполнять несколько ролей. В этой коллекции он
+   * представлен один раз, чтобы получить по одному вызову `init()` и `dispose()`.
+   */
+  private readonly _modules: IRuntimeModule[];
+
+  /**
+   * @param _updatable - модули, обновляемые перед рендером сцены
+   * @param _renderable - модули, рисующие дополнительные элементы поверх сцены
+   * @param _observers - модули, получающие управление после рендера
+   * @param runtime - модули, зарегистрированные для инициализации и освобождения
+   * @param _renderer - рендерер основной сцены
+   */
+  public constructor(
     @injectAll('IUpdatableModule', { isOptional: true })
     private readonly _updatable: IUpdatableModule[],
 
@@ -63,57 +67,120 @@ export class RendererWorker implements IWorker {
     private readonly _observers: IObserverModule[],
 
     @injectAll('IRuntimeModule', { isOptional: true })
-    private readonly _runtime: IRuntimeModule[],
+    runtime: IRuntimeModule[],
 
-    @inject('IRenderable') private readonly _renderer: IRenderable,
-  ) {}
-
-  public start(): void {
-    const all = [...this._runtime, ...this._updatable, ...this._renderable];
-    new Set(all).forEach((m) => m.init());
-
-    this._loop();
+    @inject('IRenderable')
+    private readonly _renderer: IRenderable,
+  ) {
+    this._modules = [...new Set([...runtime, ..._updatable, ..._renderable, ..._observers])];
   }
 
   /**
-   * Внутренний анимационный цикл.
+   * Запускает рендер или возобновляет его после паузы.
    *
    * @remarks
-   * Каждый кадр:
-   * 1. Обновляет модули (`update()`)
-   * 2. Рендерит сцену
-   * 3. Рендерит дополнительные модули (`render()`)
-   * 4. Наблюдает за общим состоянием приложения, собирает метрики
+   * При первом запуске вызывает `init()` у модулей и синхронно выполняет первый кадр.
+   * Повторный вызов во время инициализации или рендера не создаёт второй цикл.
    *
-   * @private
-   * @method
+   * @throws {@link Error}, если воркер уничтожен или предыдущая инициализация завершилась ошибкой
    */
-  private _loop(): void {
-    this._updatable.forEach((m) => m.update());
+  public start(): void {
+    if (this._state === WorkerState.Failed || this._state === WorkerState.Disposed)
+      throw new Error('Cannot restart a failed or disposed renderer worker');
 
-    this._renderer.render();
+    // Воркер уже запущен, либо запускается
+    if (this._state === WorkerState.Running || this._state === WorkerState.Initializing) return;
 
-    this._renderable.forEach((m) => m.render());
+    if (this._state === WorkerState.New) {
+      this._state = WorkerState.Initializing;
 
-    this._observers.forEach((m) => m.observe());
+      try {
+        for (const module of this._modules) {
+          module.init();
+          if (this._state !== WorkerState.Initializing) return;
+        }
+      } catch (error) {
+        this._state = WorkerState.Failed;
+        throw error;
+      }
+    }
 
-    this._animationId = requestAnimationFrame(() => this._loop());
+    this._state = WorkerState.Running;
+    this._frame(++this._run);
   }
 
+  /**
+   * Приостанавливает активный цикл и отменяет ожидающий кадр.
+   *
+   * @remarks
+   * Модули сохраняют своё состояние и подписки. Следующий `start()` возобновит
+   * работу без повторного вызова `init()`.
+   */
   public stop(): void {
-    if (this._animationId) {
+    if (this._state !== WorkerState.Running) return;
+
+    this._state = WorkerState.Paused;
+    ++this._run;
+
+    if (this._animationId !== null) {
       cancelAnimationFrame(this._animationId);
       this._animationId = null;
     }
   }
 
   /**
-   * Освобождает ресурсы контроллера.
+   * Останавливает цикл и освобождает модули в обратном порядке их регистрации
+   * в коллекции инициализации.
    *
-   * @public
-   * @method
+   * @returns При первом вызове — Promise завершения очистки.
+   * Повторный вызов возвращает `void`.
    */
   public dispose(): Promise<void> | void {
+    if (this._state === WorkerState.Disposed) return;
+
+    this.stop();
+    this._state = WorkerState.Disposed;
+
+    return disposeAll([...this._modules].reverse());
+  }
+
+  /**
+   * Обновляет модули, рисует сцену и оверлеи, затем уведомляет наблюдателей.
+   *
+   * @remarks
+   * После передачи управления модулю проверяет номер запуска. Это позволяет
+   * завершить старый кадр, даже если модуль успел остановить и снова запустить воркер.
+   *
+   * @param run - номер запуска, запланировавшего этот кадр
+   */
+  private _frame(run: number): void {
+    if (run !== this._run) return;
+
     this._animationId = null;
+
+    try {
+      for (const module of this._updatable) {
+        module.update();
+        if (run !== this._run) return;
+      }
+
+      this._renderer.render();
+      if (run !== this._run) return;
+
+      for (const module of this._renderable) {
+        module.render();
+        if (run !== this._run) return;
+      }
+
+      for (const module of this._observers) {
+        module.observe();
+        if (run !== this._run) return;
+      }
+
+      this._animationId = requestAnimationFrame(() => this._frame(run));
+    } catch (error) {
+      if (run === this._run) this.stop();
+      throw error;
+    }
   }
 }

@@ -6,6 +6,8 @@ import type { ISceneManager } from '@/interfaces/manager';
 // Types
 import { SceneMode } from '@planara/types';
 import { FeatureType } from '@/types/feature';
+// Utils
+import { disposeAll } from '@/shared/utils';
 
 /**
  * Менеджер для управления сценой
@@ -37,14 +39,15 @@ export class SceneManager implements ISceneManager {
     this._currentMode = mode;
   }
 
-  /** Освобождает ресурсы менеджера. */
-  public dispose(): Promise<void> | void {
-    // Очистка хендлеров
-    if (this._handlers) {
-      this._handlers.clear();
-    }
+  /**
+   * Очищает таблицу операций со сценой и освобождает их хендлеры.
+   *
+   * @returns Promise завершения очистки хендлеров сцены
+   */
+  public dispose(): Promise<void> {
+    const handlers = [...this._handlers.values()];
+    this._handlers.clear();
 
-    // Возвращение дефолтного значения
-    this._currentMode = SceneMode.AddFigure;
+    return disposeAll(handlers);
   }
 }
