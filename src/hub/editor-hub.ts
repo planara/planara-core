@@ -18,6 +18,7 @@ import { FeatureType } from '@/types/feature';
 import type { IWorker } from '@/interfaces/worker';
 import type { IExportStore, ITransformStore } from '@/interfaces/store';
 import type { IMediator } from '@/interfaces/mediator';
+import type { ICommand } from '@/interfaces/command';
 // Hub
 import { clearEditorHub } from '@/hub/index';
 // Utils
@@ -48,49 +49,49 @@ export class EditorHub implements Disposable {
   }
 
   public setDisplayMode(mode: DisplayMode): IResponse | null {
-    return this._mediator.send({
+    return this._send({
       type: FeatureType.Display,
       payload: [mode],
     });
   }
 
   public setSelectMode(mode: SelectMode): IResponse | null {
-    return this._mediator.send({
+    return this._send({
       type: FeatureType.Select,
       payload: [mode],
     });
   }
 
   public setToolMode(mode: ToolType): IResponse | null {
-    return this._mediator.send({
+    return this._send({
       type: FeatureType.Tool,
       payload: [mode],
     });
   }
 
   public addFigure(figure: FigureType): IResponse | null {
-    return this._mediator.send({
+    return this._send({
       type: FeatureType.Scene,
       payload: [SceneMode.AddFigure, figure],
     });
   }
 
   public deleteFigure(): IResponse | null {
-    return this._mediator.send({
+    return this._send({
       type: FeatureType.Scene,
       payload: [SceneMode.DeleteFigure],
     });
   }
 
   public loadFigure(content: string): IResponse | null {
-    return this._mediator.send({
+    return this._send({
       type: FeatureType.Scene,
       payload: [SceneMode.LoadFigure, content],
     });
   }
 
   public loadScene(content: string): IResponse | null {
-    return this._mediator.send({
+    return this._send({
       type: FeatureType.Scene,
       payload: [SceneMode.Load, content],
     });
@@ -99,7 +100,7 @@ export class EditorHub implements Disposable {
   public exportScene(): ExportSceneResult {
     this._exportStore.clearResult();
 
-    const response = this._mediator.send({
+    const response = this._send({
       type: FeatureType.Scene,
       payload: [SceneMode.Export],
     });
@@ -149,6 +150,17 @@ export class EditorHub implements Disposable {
       offSelected();
       offTransform();
     };
+  }
+
+  /** Проверяет, что хаб ещё принимает операции. */
+  private _ensureActive(): void {
+    if (this._disposal) throw new Error('Hub has been disposed');
+  }
+
+  /** Отправляет команду в mediator, пока хаб активен. */
+  private _send(command: ICommand): IResponse | null {
+    this._ensureActive();
+    return this._mediator.send(command);
   }
 
   /**
